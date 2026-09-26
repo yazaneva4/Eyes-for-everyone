@@ -27,6 +27,15 @@ export const settings = load();
 // Text became smaller by default; move people from the old 40pt default once.
 // English became the default. Anyone whose language was only guessed from the phone goes back to
 // English once; a language someone picked themselves (langChosen) is kept.
+// Screen reader mode used to switch the app's voice off; the voice is now always on,
+// so anyone who switched it on (often by accident) is reset once.
+if (!settings.voiceV3) {
+  settings.srMode = false;
+  settings.voiceV3 = true;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(settings));
+  } catch {}
+}
 if (!settings.langV2) {
   if (!settings.langChosen) settings.lang = 'en';
   settings.langV2 = true;

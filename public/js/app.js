@@ -34,7 +34,6 @@ const el = {
   statusWord: $('status-word'),
   message: $('message'),
   flash: $('flash'),
-  srLink: $('sr-link'),
   btnSettings: $('btn-settings'),
   btnHelp: $('btn-help'),
   btnGallery: $('btn-gallery'),
@@ -165,7 +164,11 @@ async function say(text, { display = true } = {}) {
   await speak(text, { onSentence: display ? pageTo : undefined });
 }
 
-const talk = (words) => (settings.srMode ? announce(words) : speak(words));
+// The app always speaks with its own (ElevenLabs) voice; screen readers also get the text.
+const talk = (words) => {
+  if (settings.srMode) announce(words);
+  speak(words);
+};
 
 function flash() {
   el.flash.classList.remove('go');
@@ -197,7 +200,6 @@ function updateLabels() {
   const prompt = { start: t('tapToStart'), ready: readyPrompt(), listening: t('sr.stop'), thinking: t('sr.wait'), answer: t('tapAgain') }[state];
   el.stage.setAttribute('aria-label', prompt || t('appName'));
   el.wordmark.textContent = t('appName');
-  el.srLink.textContent = t('srModeButton');
   $('drop-text').textContent = t('dropHere');
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
   el.btnHelp.setAttribute('aria-label', t('sr.help'));
@@ -406,12 +408,6 @@ function bindGestures() {
   // Keyboard, switch access and screen readers send a click without pointer events.
   el.stage.addEventListener('click', (e) => e.detail === 0 && rawTap());
 
-  el.srLink.addEventListener('click', () => {
-    settings.srMode = true;
-    save();
-    el.body.classList.add('sr');
-    begin();
-  });
   el.btnSide.addEventListener('click', () => {
     if (state === 'answer') return listen(t('askNow'));
     if (['listening', 'thinking'].includes(state)) return goReady(t('cancelled'));

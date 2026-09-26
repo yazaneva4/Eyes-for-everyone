@@ -347,10 +347,6 @@ export async function speak(text, { lang = settings.lang, onSentence } = {}) {
   speakerMode(false);
   const my = token;
   const parts = splitSentences(text);
-  if (settings.srMode) {
-    onSentence?.(-1, text);
-    return srWait(text, my);
-  }
   const useServer = serverVoice === 'always' || (serverVoice === 'fallback' && !voiceFor(lang));
   // Ask the server for every sentence at once so playback has no gaps.
   const urls = useServer ? parts.map((p) => fetchServerAudio(p, lang).catch(() => null)) : [];
@@ -388,7 +384,7 @@ export function speakStream({ lang = settings.lang, onSentence } = {}) {
   const enqueue = (sentence) => {
     const s = sentence.trim();
     if (!s) return;
-    queue.push({ s, url: useServer && !settings.srMode ? fetchServerAudio(s, lang).catch(() => null) : null });
+    queue.push({ s, url: useServer ? fetchServerAudio(s, lang).catch(() => null) : null });
     wake?.();
   };
   // A sentence is finished when its full stop (or ? ! ؟ ।) is followed by a space.
@@ -405,7 +401,6 @@ export function speakStream({ lang = settings.lang, onSentence } = {}) {
       if (queue.length) {
         const { s, url } = queue.shift();
         onSentence?.(index++, s);
-        if (settings.srMode) continue; // the screen reader reads the text instead
         if (useServer) {
           const u = await url;
           if (my !== token) return;
