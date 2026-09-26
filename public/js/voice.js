@@ -123,8 +123,43 @@ function speakBrowser(text, lang, my) {
 // ElevenLabs speaks at the chosen speed itself (it can do 0.7× to 1.2×).
 const voiceSpeed = () => Math.min(1.2, Math.max(0.7, settings.rate));
 
+// ElevenLabs allows only a few requests at the same time, so at most 3 go out at once,
+// and a failed one is tried once more, so every sentence stays in the same voice.
+const MAX_AT_ONCE = 3;
+let inFlight = 0;
+const waiting = [];
+function limited(job, urgent) {
+  return new Promise((resolve, reject) => {
+    const run = () => {
+      inFlight++;
+      job()
+        .then(resolve, reject)
+        .finally(() => {
+          inFlight--;
+          waiting.shift()?.();
+        });
+    };
+    if (inFlight < MAX_AT_ONCE) run();
+    else if (urgent) waiting.unshift(run); // something to say now goes before background pre-fetching
+    else waiting.push(run);
+  });
+}
+
+async function fetchVoice(text, lang, speed) {
+  for (let attempt = 0; ; attempt++) {
+    const r = await fetch('/api/speak', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ text, lang, speed }),
+    });
+    if (r.ok) return r.arrayBuffer();
+    if (attempt >= 1) throw new Error('tts');
+    await new Promise((res) => setTimeout(res, 500));
+  }
+}
+
 /** Fetches (and decodes) the ElevenLabs audio for one sentence. Resolves to an AudioBuffer. */
-function fetchServerAudio(text, lang) {
+function fetchServerAudio(text, lang, urgent = true) {
   const speed = voiceSpeed();
   const key = `${lang}|${speed}|${text}`;
   if (cache.has(key)) {
@@ -133,15 +168,7 @@ function fetchServerAudio(text, lang) {
     cache.set(key, hit); // most recently used goes last
     return hit;
   }
-  const p = fetch('/api/speak', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ text, lang, speed }),
-  })
-    .then((r) => {
-      if (!r.ok) throw new Error('tts');
-      return r.arrayBuffer();
-    })
+  const p = limited(() => fetchVoice(text, lang, speed), urgent)
     .then((data) => {
       const c = audioContext();
       if (!c) throw new Error('no-audio');
@@ -156,7 +183,7 @@ function fetchServerAudio(text, lang) {
 /** Warm the cache for prompts the app is about to say, so they start instantly. */
 export function preload(texts, lang) {
   if (serverVoice !== 'always') return;
-  texts.forEach((t) => splitSentences(t).forEach((s) => fetchServerAudio(s, lang).catch(() => {})));
+  texts.forEach((t) => splitSentences(t).forEach((s) => fetchServerAudio(s, lang, false).catch(() => {})));
 }
 
 /**
