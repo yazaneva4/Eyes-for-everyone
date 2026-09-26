@@ -1473,3 +1473,22 @@ body[data-nocam='yes'] .viewfinder {
     padding-bottom: 6px;
   }
 }
+
+/* ?debug: what the voice is doing */
+#voice-debug {
+  position: fixed;
+  z-index: 50;
+  left: 8px;
+  right: 8px;
+  top: 70px;
+  max-height: 40vh;
+  overflow: hidden;
+  margin: 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: rgb(0 0 0 / 0.8);
+  color: #7CFC9A;
+  font: 12px/1.35 ui-monospace, Menlo, monospace;
+  white-space: pre-wrap;
+  pointer-events: none;
+}

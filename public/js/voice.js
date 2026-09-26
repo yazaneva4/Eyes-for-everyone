@@ -17,6 +17,24 @@ let token = 0;
 // ElevenLabs audio plays through Web Audio (the same engine as the app's sounds). Once the first
 // tap has unlocked it, it plays everywhere, including iPhone Safari, without per-clip autoplay rules.
 let current = null; // the clip playing now
+// A second player: the ordinary <audio> element, used if Web Audio is still locked.
+const player = new Audio();
+player.preload = 'auto';
+
+// ?debug in the address shows what the voice is doing, on screen.
+const DEBUG = new URLSearchParams(location.search).has('debug');
+let debugBox = null;
+export function voiceLog(msg) {
+  if (!DEBUG) return;
+  if (!debugBox) {
+    debugBox = document.createElement('pre');
+    debugBox.id = 'voice-debug';
+    document.body.append(debugBox);
+  }
+  const c = audioContext();
+  const line = `${new Date().toLocaleTimeString()} [audio ${c ? c.state : 'none'}] ${msg}`;
+  debugBox.textContent = (line + '\n' + debugBox.textContent).slice(0, 3000);
+}
 
 function loadVoices() {
   voices = window.speechSynthesis?.getVoices() || [];
@@ -61,6 +79,10 @@ function silentWav() {
 // Call inside the first tap so iPhone allows sound later.
 export function unlockVoice() {
   try {
+    // iPhone: say we are a playback app before anything plays, so the silent switch does not mute us.
+    if (navigator.audioSession) navigator.audioSession.type = 'playback';
+  } catch {}
+  try {
     const c = audioContext();
     c?.resume?.();
     // A silent blip inside the tap fully unlocks Web Audio on iPhone.
@@ -71,12 +93,31 @@ export function unlockVoice() {
       src.connect(c.destination);
       src.start(0);
     }
-    if ('speechSynthesis' in window) {
+    if ('speechSynthesis' in window && !unlockedOnce) {
       const u = new SpeechSynthesisUtterance(' ');
       u.volume = 0;
       speechSynthesis.speak(u);
     }
-  } catch {}
+    // Unlock the backup <audio> player inside the same gesture.
+    if (!unlockedOnce) {
+      player.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
+      player.play().catch(() => {});
+    }
+    unlockedOnce = true;
+    voiceLog('unlocked by a touch/click');
+  } catch (e) {
+    voiceLog('unlock failed: ' + e.message);
+  }
+}
+let unlockedOnce = false;
+
+// Browsers only allow sound after a person touches the page, and some (iPhone) only count the end
+// of a touch or a click. Unlock on every one of these, so sound can never stay locked.
+for (const type of ['pointerup', 'touchend', 'click', 'keydown']) {
+  addEventListener(type, () => {
+    const c = audioContext();
+    if (!unlockedOnce || (c && c.state !== 'running')) unlockVoice();
+  }, { capture: true, passive: true });
 }
 
 export function stopSpeaking() {
@@ -88,6 +129,7 @@ export function stopSpeaking() {
     current?.stop();
   } catch {}
   current = null;
+  player.pause();
 }
 
 function estimateMs(text) {
@@ -95,6 +137,7 @@ function estimateMs(text) {
 }
 
 function speakBrowser(text, lang, my) {
+  voiceLog('using the phone voice for: ' + text.slice(0, 40));
   return new Promise((resolve) => {
     if (!('speechSynthesis' in window)) return setTimeout(resolve, 400);
     const u = new SpeechSynthesisUtterance(text);
@@ -153,6 +196,7 @@ async function fetchVoice(text, lang, speed) {
       body: JSON.stringify({ text, lang, speed }),
     });
     if (r.ok) return r.arrayBuffer();
+    voiceLog(`ElevenLabs answered ${r.status} for: ${text.slice(0, 30)}`);
     if (attempt >= 1) throw new Error('tts');
     await new Promise((res) => setTimeout(res, 500));
   }
@@ -172,7 +216,20 @@ function fetchServerAudio(text, lang, urgent = true) {
     .then((data) => {
       const c = audioContext();
       if (!c) throw new Error('no-audio');
-      return new Promise((resolve, reject) => c.decodeAudioData(data, resolve, reject));
+      const copy = data.slice(0);
+      return new Promise((resolve, reject) =>
+        c.decodeAudioData(
+          data,
+          (buffer) => {
+            buffer.mp3 = copy; // for the backup player
+            resolve(buffer);
+          },
+          (e) => {
+            voiceLog('could not decode voice: ' + (e?.message || e));
+            reject(e);
+          }
+        )
+      );
     });
   p.catch(() => cache.delete(key));
   cache.set(key, p);
@@ -199,13 +256,18 @@ export function speakerMode(recording) {
 /** Plays one decoded clip. Resolves true when it played, false if sound is not possible. */
 async function playUrl(buffer, my) {
   const c = audioContext();
-  if (!c || !buffer) return false;
-  if (c.state !== 'running') {
+  if (!buffer) return false;
+  if (c && c.state !== 'running') {
     try {
       await Promise.race([c.resume(), new Promise((r) => setTimeout(r, 1500))]);
     } catch {}
   }
-  if (c.state !== 'running' || my !== token) return my !== token;
+  if (my !== token) return true;
+  if (!c || c.state !== 'running') {
+    voiceLog('Web Audio locked, trying the audio player');
+    return playWithPlayer(buffer, my);
+  }
+  voiceLog(`playing ${buffer.duration.toFixed(1)}s of ElevenLabs voice`);
   return new Promise((resolve) => {
     const src = c.createBufferSource();
     const gain = c.createGain();
@@ -231,6 +293,36 @@ async function playUrl(buffer, my) {
     src.onended = finish;
     current = src;
     src.start();
+  });
+}
+
+/** Backup: the ordinary audio player. Resolves true if it played. */
+function playWithPlayer(buffer, my) {
+  if (!buffer.mp3) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(new Blob([buffer.mp3], { type: 'audio/mpeg' }));
+    let done = false;
+    const finish = (ok) => {
+      if (done) return;
+      done = true;
+      clearInterval(watch);
+      clearTimeout(stall);
+      URL.revokeObjectURL(url);
+      resolve(ok);
+    };
+    const watch = setInterval(() => my !== token && (player.pause(), finish(true)), 100);
+    const stall = setTimeout(() => (player.pause(), finish(false)), 8000);
+    player.onended = () => finish(true);
+    player.onerror = () => finish(false);
+    player.src = url;
+    player.volume = Math.min(1, settings.volume);
+    player
+      .play()
+      .then(() => voiceLog('audio player is playing'))
+      .catch((e) => {
+        voiceLog('audio player refused: ' + e.name);
+        finish(false);
+      });
   });
 }
 
