@@ -752,12 +752,13 @@ async function loadPicture(file) {
   usePhoto(canvas, my);
 }
 
-// The photo is described straight away — no question needed.
+// After the photo: ask your question straight away (the app hears when you stop talking).
 function usePhoto(canvas, my) {
   photo = { base64: toJpegBase64(canvas), url: canvas.toDataURL('image/jpeg', 0.7) };
   history = [];
   el.photo.src = photo.url;
-  ask('', my);
+  // Listen for a question right away; if nobody speaks, the photo is simply described.
+  listen(t('photoTaken'));
 }
 
 // ---------- asking: the answer streams in and is spoken while it arrives ----------
