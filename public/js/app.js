@@ -453,7 +453,7 @@ function bindGestures() {
   let dragDepth = 0;
   addEventListener('dragenter', (e) => {
     if (![...(e.dataTransfer?.types || [])].includes('Files')) return;
-    dragDepth++;
+    if (dragDepth++ === 0 && state !== 'start') talk(t('dropHere'));
     el.body.classList.add('dropping');
   });
   addEventListener('dragleave', () => {
@@ -753,9 +753,10 @@ function usePhoto(canvas, my) {
 
 async function ask(question, my) {
   const q = question.trim() || t('defaultQuestion');
+  const alreadySaid = state === 'thinking';
   setState('thinking');
   show(t('thinking'));
-  talk(t('thinking'));
+  if (!alreadySaid) talk(t('thinking'));
   sounds.thinkingStart();
   abort = abort || new AbortController();
   const ctl = abort;
@@ -868,6 +869,7 @@ async function finishListening() {
   sounds.stop();
   setState('thinking');
   show(t('thinking'));
+  talk(t('thinking'));
   sounds.thinkingStart();
   abort = new AbortController();
   let question = '';
