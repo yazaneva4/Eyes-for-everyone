@@ -18,7 +18,7 @@ The app does two things:
 | **Swipe down** | Open a picture from the gallery. |
 | **Drag the answer sheet** | Expand it for long answers, or shrink it to one line. |
 
-**Laptop / PC:** press **Space** to take a photo. The other keys are **A** ask about it, **R** repeat, **← / →** Describe or Qibla, **O** open a picture, **↑ / ↓** resize the answer, **S** settings and **H** help. You can also **drop or paste a picture** (for example a screenshot). A laptop has no compass, so Qibla does not draw one there: it says to use a phone, and gives the bearing from north and the distance.
+**Laptop / PC:** click anywhere to take a photo, or drop / paste a picture. **Upload photo** is in the bottom corner. A laptop has no compass, so Qibla does not draw one there: it says to use a phone, and gives the bearing from north and the distance.
 
 --- | --- |
 | **Tap** (READY) | Takes a photo (shutter sound + buzz). Too dark or blurry? It tells you and waits. |
@@ -33,7 +33,7 @@ The app does two things:
 
 There is no shutter button: **tap anywhere**. At the **bottom** are the **gallery** button, **Describe | Qibla**, and one button that changes with the moment (*repeat* when ready, *ask about it* after an answer). At the **top** are **help (?)** and **settings (⚙)**.
 
-**Laptop / PC:** press **Space** (or click anywhere) instead of tapping. The other keys are **A** ask more, **R** repeat, **← / →** change mode (or scroll sideways on a trackpad), **O** open a picture, **S** settings and **H** spoken help. You can also **drag a picture onto the page** or **paste** one (Ctrl/⌘+V), for example a screenshot. If the computer has no camera, the app says so and suggests dropping or pasting a picture instead.
+**Laptop / PC:** click anywhere to take a photo, or drop / paste a picture. **Upload photo** is in the bottom corner. A laptop has no compass, so Qibla does not draw one there: it says to use a phone, and gives the bearing from north and the distance.
 
 | Say *repeat · faster · slower · louder · change language · bigger text* | Voice commands while listening (English, Arabic, Malayalam). |
 

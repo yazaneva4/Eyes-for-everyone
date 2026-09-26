@@ -617,7 +617,7 @@ export async function transcribe({ audio, mime, lang }) {
 // eleven_flash_v2_5 is the fastest but has no Malayalam, so Malayalam uses eleven_v3.
 const ELEVEN_MODEL = { en: 'eleven_flash_v2_5', ar: 'eleven_flash_v2_5', ml: 'eleven_v3' };
 
-async function elevenSpeech(text, lang) {
+async function elevenSpeech(text, lang, speed = 1) {
   const voice = process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
   const model = process.env[`ELEVENLABS_TTS_MODEL_${lang.toUpperCase()}`] || process.env.ELEVENLABS_TTS_MODEL || ELEVEN_MODEL[lang];
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
@@ -627,7 +627,8 @@ async function elevenSpeech(text, lang) {
       text,
       model_id: model,
       language_code: lang,
-      voice_settings: { stability: 0.6, similarity_boost: 0.8 },
+      // ElevenLabs changes the speaking speed itself (0.7–1.2), which sounds natural.
+      voice_settings: { stability: 0.6, similarity_boost: 0.8, speed: Math.min(1.2, Math.max(0.7, Number(speed) || 1)) },
     }),
     signal: AbortSignal.timeout(20000),
   });
@@ -635,8 +636,8 @@ async function elevenSpeech(text, lang) {
   return Buffer.from(await r.arrayBuffer());
 }
 
-export async function speech({ text, lang }) {
+export async function speech({ text, lang, speed }) {
   const k = keys();
   if (!k.elevenlabs) throw Object.assign(new Error('No text-to-speech key configured'), { status: 503 });
-  return elevenSpeech(text, lang);
+  return elevenSpeech(text, lang, speed);
 }

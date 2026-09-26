@@ -857,10 +857,7 @@ body[data-sheet='full'] .sheet {
 body[data-sheet='full'] #message {
   flex: 1;
   max-height: none;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  touch-action: pan-y;
-  scrollbar-width: thin;
+  overflow: hidden;
 }
 body[data-sheet='peek'] #message {
   max-height: 1.35em;
@@ -960,6 +957,10 @@ body.recording .sheet {
 }
 #btn-settings {
   grid-column: 3;
+}
+#btn-help {
+  grid-column: 1;
+  grid-row: 1;
 }
 .topbar > * {
   pointer-events: auto;
@@ -1132,7 +1133,7 @@ body[data-state='start']:not(.sr) .text-link {
 .settings-sheet {
   width: min(100%, 560px);
   max-height: 100%;
-  overflow: auto;
+  overflow: hidden;
   padding: 18px 18px 22px;
   border-radius: var(--r-lg);
   animation: sheet-in 0.55s var(--spring);
@@ -1415,6 +1416,10 @@ body.desktop #stage {
 
 /* ---------- upload photo: a labelled button in the bottom corner ---------- */
 
+body[data-state='start']:not(.sr) #btn-gallery,
+body[data-state='settings'] #btn-gallery {
+  visibility: hidden;
+}
 #btn-gallery {
   position: fixed;
   z-index: 8;
@@ -1456,4 +1461,15 @@ body.desktop #stage {
 }
 body[data-nocam='yes'] .viewfinder {
   display: none;
+}
+
+/* Short screens (laptop windows, phones on their side): tighter settings so it always fits */
+@media (max-height: 620px) {
+  .set-row {
+    min-height: 48px;
+    padding: 6px 14px;
+  }
+  .sheet-head {
+    padding-bottom: 6px;
+  }
 }

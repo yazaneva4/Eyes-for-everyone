@@ -4,6 +4,9 @@ import { settings } from './settings.js';
 let ctx;
 let thinkingTimer = null;
 
+/** The app's single Web Audio engine (unlocked by the first tap), also used for the voice. */
+export const audioContext = () => ac();
+
 function ac() {
   if (!ctx) {
     const AC = window.AudioContext || window.webkitAudioContext;

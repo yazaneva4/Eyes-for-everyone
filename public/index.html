@@ -42,6 +42,7 @@
         <symbol id="i-text" viewBox="0 0 24 24"><path d="M3 19 8 5l5 14M4.8 14h6.4M15 19l3-8 3 8M15.9 16.6h4.2" /></symbol>
         <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5" /></symbol>
         <symbol id="i-kaaba" viewBox="0 0 24 24"><path d="M12 3 21 7.5v9L12 21l-9-4.5v-9Z" /><path d="M3 7.5 12 12l9-4.5M12 12v9M3.4 10.6 12 15l8.6-4.4" /></symbol>
+        <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" /><path d="M9.4 9.3a2.7 2.7 0 1 1 3.7 2.5c-.7.3-1.1.9-1.1 1.7v.6" /><circle cx="12" cy="17.2" r=".6" fill="currentColor" /></symbol>
         <symbol id="i-stop" viewBox="0 0 24 24"><rect x="6.5" y="6.5" width="11" height="11" rx="2" fill="currentColor" /></symbol>
         <symbol id="i-x" viewBox="0 0 24 24"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" /></symbol>
         <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5" /><circle cx="9" cy="9.5" r="1.8" /><path d="m4 18 5.5-5.5 4 4 2.5-2.5L21 19" /></symbol>
@@ -61,8 +62,9 @@
     <div class="edge edge-soft" aria-hidden="true"></div>
     <div class="edge edge-sharp" aria-hidden="true"></div>
 
-    <!-- Top bar: status · settings -->
+    <!-- Top bar: help · status · settings -->
     <header class="topbar">
+      <button id="btn-help" class="icon-btn glass" type="button" aria-label="Help"><svg class="ic" aria-hidden="true"><use href="#i-help" /></svg></button>
       <div class="pill glass" aria-hidden="true"><span class="orb"></span><span id="status-word">START</span></div>
       <button id="btn-settings" class="icon-btn glass" type="button" aria-label="Settings"><svg class="ic" aria-hidden="true"><use href="#i-gear" /></svg></button>
     </header>
@@ -99,8 +101,9 @@
     <button id="stage" type="button" aria-label="Tap anywhere to start"></button>
 
     <!-- Bottom bar: gallery · Describe | Qibla · one button that changes with the moment (repeat / ask) -->
+    <!-- Upload photo: always in the bottom corner (kept out of the bar so it never moves) -->
+    <button id="btn-gallery" class="icon-btn glass" type="button" aria-label="Upload photo"><svg class="ic" aria-hidden="true"><use href="#i-image" /></svg><span class="btn-text" id="gallery-text">Upload photo</span></button>
     <nav class="dock" aria-label="Controls">
-      <button id="btn-gallery" class="icon-btn glass" type="button" aria-label="Upload photo"><svg class="ic" aria-hidden="true"><use href="#i-image" /></svg><span class="btn-text" id="gallery-text">Upload</span></button>
       <div class="modebar glass" id="modebar" role="tablist">
         <button type="button" role="tab" data-mode="describe">Describe</button>
         <button type="button" role="tab" data-mode="qibla">Qibla</button>

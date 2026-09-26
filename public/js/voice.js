@@ -3,6 +3,7 @@
 //   'fallback' → (unused now) server voice only when the phone has none for the language.
 // Screen reader mode stays silent because the screen reader reads the live region instead.
 import { settings } from './settings.js';
+import { audioContext } from './sounds.js';
 import { LOCALES } from './i18n.js';
 
 let voices = [];
@@ -13,8 +14,9 @@ let serverVoice = 'always'; // false | 'fallback' | 'always'
 const cache = new Map();
 const CACHE_MAX = 60;
 let token = 0;
-const audio = new Audio();
-audio.preload = 'auto';
+// ElevenLabs audio plays through Web Audio (the same engine as the app's sounds). Once the first
+// tap has unlocked it, it plays everywhere, including iPhone Safari, without per-clip autoplay rules.
+let current = null; // the clip playing now
 
 function loadVoices() {
   voices = window.speechSynthesis?.getVoices() || [];
@@ -59,13 +61,21 @@ function silentWav() {
 // Call inside the first tap so iPhone allows sound later.
 export function unlockVoice() {
   try {
+    const c = audioContext();
+    c?.resume?.();
+    // A silent blip inside the tap fully unlocks Web Audio on iPhone.
+    if (c) {
+      const b = c.createBuffer(1, 1, 22050);
+      const src = c.createBufferSource();
+      src.buffer = b;
+      src.connect(c.destination);
+      src.start(0);
+    }
     if ('speechSynthesis' in window) {
       const u = new SpeechSynthesisUtterance(' ');
       u.volume = 0;
       speechSynthesis.speak(u);
     }
-    audio.src = silentWav();
-    audio.play().catch(() => {});
   } catch {}
 }
 
@@ -74,7 +84,10 @@ export function stopSpeaking() {
   try {
     speechSynthesis.cancel();
   } catch {}
-  audio.pause();
+  try {
+    current?.stop();
+  } catch {}
+  current = null;
 }
 
 function estimateMs(text) {
@@ -107,8 +120,13 @@ function speakBrowser(text, lang, my) {
   });
 }
 
+// ElevenLabs speaks at the chosen speed itself (it can do 0.7× to 1.2×).
+const voiceSpeed = () => Math.min(1.2, Math.max(0.7, settings.rate));
+
+/** Fetches (and decodes) the ElevenLabs audio for one sentence. Resolves to an AudioBuffer. */
 function fetchServerAudio(text, lang) {
-  const key = `${lang}|${text}`;
+  const speed = voiceSpeed();
+  const key = `${lang}|${speed}|${text}`;
   if (cache.has(key)) {
     const hit = cache.get(key);
     cache.delete(key);
@@ -118,20 +136,20 @@ function fetchServerAudio(text, lang) {
   const p = fetch('/api/speak', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ text, lang }),
+    body: JSON.stringify({ text, lang, speed }),
   })
     .then((r) => {
       if (!r.ok) throw new Error('tts');
-      return r.blob();
+      return r.arrayBuffer();
     })
-    .then((b) => URL.createObjectURL(b));
+    .then((data) => {
+      const c = audioContext();
+      if (!c) throw new Error('no-audio');
+      return new Promise((resolve, reject) => c.decodeAudioData(data, resolve, reject));
+    });
   p.catch(() => cache.delete(key));
   cache.set(key, p);
-  if (cache.size > CACHE_MAX) {
-    const [oldKey, old] = cache.entries().next().value;
-    cache.delete(oldKey);
-    old.then((u) => URL.revokeObjectURL(u)).catch(() => {});
-  }
+  if (cache.size > CACHE_MAX) cache.delete(cache.keys().next().value);
   return p;
 }
 
@@ -151,36 +169,41 @@ export function speakerMode(recording) {
   } catch {}
 }
 
-/** Plays one clip. Resolves true when it played, false if the phone refused it. */
-function playUrl(url, my) {
+/** Plays one decoded clip. Resolves true when it played, false if sound is not possible. */
+async function playUrl(buffer, my) {
+  const c = audioContext();
+  if (!c || !buffer) return false;
+  if (c.state !== 'running') {
+    try {
+      await Promise.race([c.resume(), new Promise((r) => setTimeout(r, 1500))]);
+    } catch {}
+  }
+  if (c.state !== 'running' || my !== token) return my !== token;
   return new Promise((resolve) => {
+    const src = c.createBufferSource();
+    const gain = c.createGain();
+    src.buffer = buffer;
+    gain.gain.value = Math.min(1, settings.volume);
+    src.connect(gain).connect(c.destination);
     let done = false;
-    let started = false;
-    const finish = (ok) => {
+    const finish = () => {
       if (done) return;
       done = true;
       clearInterval(watch);
-      audio.onended = audio.onerror = null;
-      resolve(ok);
+      if (current === src) current = null;
+      resolve(true);
     };
-    const watch = setInterval(() => my !== token && (audio.pause(), finish(true)), 100);
-    // Never wait forever: if the clip has not started within 8 s (e.g. the browser holds back
-    // sound in a tab that is not on screen), give up and let the phone's own voice say it.
-    const stall = setTimeout(() => {
-      if (!started) {
-        audio.pause();
-        finish(false);
+    const watch = setInterval(() => {
+      if (my !== token) {
+        try {
+          src.stop();
+        } catch {}
+        finish();
       }
-    }, 8000);
-    audio.onended = () => (clearTimeout(stall), finish(true));
-    audio.onerror = () => (clearTimeout(stall), finish(started));
-    audio.src = url;
-    audio.playbackRate = settings.rate;
-    audio.volume = Math.min(1, settings.volume);
-    audio
-      .play()
-      .then(() => (started = true))
-      .catch(() => (clearTimeout(stall), finish(false)));
+    }, 100);
+    src.onended = finish;
+    current = src;
+    src.start();
   });
 }
 

@@ -36,6 +36,7 @@ const el = {
   flash: $('flash'),
   srLink: $('sr-link'),
   btnSettings: $('btn-settings'),
+  btnHelp: $('btn-help'),
   btnGallery: $('btn-gallery'),
   btnSide: $('btn-side'),
   sideIcon: $('side-icon'),
@@ -65,6 +66,12 @@ let returnState = 'ready';
 let pendingPicture = null; // a picture dropped on the page before the first tap
 let qibla = null; // the running compass
 let qiblaSay = ''; // what a tap in Qibla says right now
+let qiblaPrefix = ''; // e.g. "Qibla." when it was just chosen
+const prefixSaid = (text) => {
+  const p = qiblaPrefix;
+  qiblaPrefix = '';
+  return p ? `${p} ${text}` : text;
+};
 let currentText = '';
 let paging = false;
 let pagePt = 32;
@@ -193,6 +200,7 @@ function updateLabels() {
   el.srLink.textContent = t('srModeButton');
   $('drop-text').textContent = t('dropHere');
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
+  el.btnHelp.setAttribute('aria-label', t('sr.help'));
   el.btnGallery.setAttribute('aria-label', t('upload'));
   $('gallery-text').textContent = t('upload');
   for (const b of el.modebar.children) b.textContent = t(`modes.${b.dataset.mode}.name`);
@@ -229,11 +237,6 @@ function setSheet(size) {
   updateLabels();
 }
 
-function stepSheet(dir) {
-  if (state !== 'answer') return;
-  const i = SHEET_SIZES.indexOf(el.body.dataset.sheet) + dir;
-  if (i >= 0 && i < SHEET_SIZES.length) setSheet(SHEET_SIZES[i]);
-}
 
 // ---------- gestures ----------
 
@@ -396,6 +399,7 @@ function bindGestures() {
   }
   el.grabber.addEventListener('click', (e) => {
     e.stopPropagation();
+    talk(el.grabber.getAttribute('aria-label'));
     const size = el.body.dataset.sheet;
     setSheet(size === 'auto' ? 'full' : size === 'full' ? 'peek' : 'auto');
   });
@@ -413,8 +417,16 @@ function bindGestures() {
     if (['listening', 'thinking'].includes(state)) return goReady(t('cancelled'));
     if (state === 'ready') return onLongPress();
   });
-  el.btnGallery.addEventListener('click', openPicker);
+  el.btnGallery.addEventListener('click', () => {
+    talk(t('upload'));
+    openPicker();
+  });
   el.btnSettings.addEventListener('click', openSettings);
+  el.btnHelp.addEventListener('click', () => {
+    unlockVoice();
+    sounds.unlock();
+    sayHelp();
+  });
   el.modebar.addEventListener('click', (e) => {
     const b = e.target.closest('[data-mode]');
     if (!b || b.dataset.mode === mode) return;
@@ -475,28 +487,9 @@ function bindGestures() {
     if (item) loadPicture(item.getAsFile());
   });
 
+  // No keyboard commands. Escape closes settings, and focused buttons work with Enter / Space as usual.
   document.addEventListener('keydown', (e) => {
-    if (state === 'settings') {
-      if (e.key === 'Escape') closeSettings();
-      return;
-    }
-    if (e.metaKey || e.ctrlKey || e.altKey) return; // leave browser shortcuts (like paste) alone
-    const onButton = e.target instanceof HTMLButtonElement;
-    if ((e.key === ' ' || e.key === 'Enter') && !onButton) {
-      e.preventDefault();
-      return rawTap();
-    }
-    const key = e.key.toLowerCase();
-    if (key === 'a' && state === 'answer') listen(t('askNow'));
-    else if (key === 'r') onLongPress();
-    else if (key === 's') openSettings();
-    else if (key === 'o') openPicker();
-    else if (key === 'h' || e.key === '?') sayHelp();
-    else if (e.key === 'Escape') onDoubleTap();
-    else if (e.key === 'ArrowUp') stepSheet(1);
-    else if (e.key === 'ArrowDown') stepSheet(-1);
-    else if (e.key === 'ArrowRight') onSwipe(document.documentElement.dir === 'rtl' ? -1 : 1);
-    else if (e.key === 'ArrowLeft') onSwipe(document.documentElement.dir === 'rtl' ? 1 : -1);
+    if (state === 'settings' && e.key === 'Escape') closeSettings();
   });
 }
 
@@ -558,7 +551,9 @@ function onSwipeDown() {
   if (mode === 'describe' && ['ready', 'answer'].includes(state)) openPicker();
 }
 
+let modeJustChosen = false;
 function selectMode(next) {
+  modeJustChosen = true;
   mode = next;
   settings.mode = mode;
   save();
@@ -628,6 +623,10 @@ async function showDisclaimer() {
 
 /** Ready to go in the current mode: the camera for Describe, the compass for Qibla. */
 async function goReady(prefix) {
+  if (modeJustChosen) {
+    prefix = t(`modes.${mode}.name`) + '.';
+    modeJustChosen = false;
+  }
   cancelWork();
   const my = ++op;
   photo = null;
@@ -639,6 +638,7 @@ async function goReady(prefix) {
   if (mode === 'qibla') {
     stopCamera(el.video);
     el.body.dataset.camera = 'off';
+    qiblaPrefix = prefix || '';
     return runQibla(my); // must start inside this touch, before anything is awaited
   }
   if (!settings.disclaimerShown) await showDisclaimer();
@@ -753,10 +753,8 @@ function usePhoto(canvas, my) {
 
 async function ask(question, my) {
   const q = question.trim() || t('defaultQuestion');
-  const alreadySaid = state === 'thinking';
   setState('thinking');
   show(t('thinking'));
-  if (!alreadySaid) talk(t('thinking'));
   sounds.thinkingStart();
   abort = abort || new AbortController();
   const ctl = abort;
@@ -869,7 +867,6 @@ async function finishListening() {
   sounds.stop();
   setState('thinking');
   show(t('thinking'));
-  talk(t('thinking'));
   sounds.thinkingStart();
   abort = new AbortController();
   let question = '';
@@ -1037,7 +1034,7 @@ async function runQibla(my) {
   qibla = { stop: () => (cancelled = true) };
   el.body.dataset.running = 'qibla';
   show(t('qiblaLocating'));
-  talk(t('qiblaLocating'));
+  talk(prefixSaid(t('qiblaLocating')));
   let q;
   try {
     q = await pending;
