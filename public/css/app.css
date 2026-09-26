@@ -1404,51 +1404,46 @@ body.desktop #stage {
   }
 }
 
-/* ---------- upload ---------- */
+/* ---------- upload photo: a labelled button in the bottom corner ---------- */
 
-/* Laptop: the picture button says "Upload" */
-.btn-text {
-  display: none;
-}
-body.desktop #btn-gallery {
+#btn-gallery {
+  position: fixed;
+  z-index: 8;
+  left: max(var(--gap), env(safe-area-inset-left));
+  bottom: calc(env(safe-area-inset-bottom) + 14px);
   width: auto;
-  padding: 0 18px 0 14px;
+  height: 48px;
+  padding: 0 16px 0 12px;
   border-radius: 999px;
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 13pt;
+  font-size: 12.5pt;
   font-weight: 800;
 }
-body.desktop #btn-gallery .btn-text {
+:root[dir='rtl'] #btn-gallery {
+  left: auto;
+  right: max(var(--gap), env(safe-area-inset-right));
+}
+#btn-gallery .ic {
+  font-size: 22px;
+}
+.btn-text {
   display: inline;
+  white-space: nowrap;
 }
-body.desktop .dock {
-  grid-template-columns: max-content max-content 52px;
+/* The dock keeps Describe | Qibla in the middle and the repeat/ask button on the right */
+.dock {
+  grid-template-columns: max-content 52px !important;
 }
-
-/* No camera: a big Upload button in the middle */
-.upload-btn {
-  position: fixed;
-  z-index: 7;
-  left: 50%;
-  top: 38%;
-  transform: translate(-50%, -50%);
-  display: none;
-  align-items: center;
-  gap: 12px;
-  padding: 18px 30px;
-  border-radius: 999px;
-  font-size: 20pt;
-  font-weight: 800;
-  cursor: pointer;
-  color: var(--fg);
-}
-.upload-btn .ic {
-  font-size: 1.3em;
-}
-body[data-nocam='yes'][data-state='ready'][data-mode='describe'] .upload-btn {
-  display: flex;
+/* Phones: the mode switch sits above the corner button so nothing overlaps */
+@media (max-width: 520px) {
+  :root {
+    --dock-h: 142px;
+  }
+  .dock {
+    padding-bottom: calc(env(safe-area-inset-bottom) + 74px);
+  }
 }
 body[data-nocam='yes'] .viewfinder {
   display: none;

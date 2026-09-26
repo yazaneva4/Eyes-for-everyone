@@ -15,17 +15,29 @@ export async function startCamera(video) {
   if (demo) return;
   if (stream) return;
   if (!navigator.mediaDevices?.getUserMedia) throw Object.assign(new Error('NotSupported'), { name: 'NotSupported' });
-  const asking = navigator.mediaDevices.getUserMedia({
-    video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
-    audio: false,
-  });
+  const ask = (constraints) => {
+    const asking = navigator.mediaDevices.getUserMedia(constraints);
+    return within(20000, asking, 'NoAnswer').catch((e) => {
+      // If the camera turns up after we gave up, switch it straight off again.
+      if (e.name === 'NoAnswer') asking.then((late) => late.getTracks().forEach((t) => t.stop())).catch(() => {});
+      throw e;
+    });
+  };
   let s;
   try {
-    s = await within(20000, asking, 'NoAnswer');
+    // Back camera on phones, the best resolution the camera offers.
+    s = await ask({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
   } catch (e) {
-    // If the camera turns up after we gave up, switch it straight off again.
-    if (e.name === 'NoAnswer') asking.then((late) => late.getTracks().forEach((t) => t.stop())).catch(() => {});
-    throw e;
+    console.warn('[Eyes] camera, first try:', e.name, e.message);
+    // Blocked or unanswered: asking again will not help.
+    if (e.name === 'NotAllowedError' || e.name === 'SecurityError' || e.name === 'NoAnswer') throw e;
+    // Anything else (e.g. a laptop webcam that dislikes the settings): the plainest possible request.
+    try {
+      s = await ask({ video: true, audio: false });
+    } catch (e2) {
+      console.warn('[Eyes] camera, plain try:', e2.name, e2.message);
+      throw e2;
+    }
   }
   stream = s;
   video.srcObject = stream;

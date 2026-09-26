@@ -1,5 +1,5 @@
 // Service worker: lets the app (and Qibla) open without internet.
-const CACHE = 'eyes-v14';
+const CACHE = 'eyes-v15';
 const SHELL = [
   '/',
   '/css/app.css',

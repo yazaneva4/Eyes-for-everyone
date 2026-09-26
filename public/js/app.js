@@ -37,7 +37,6 @@ const el = {
   btnHelp: $('btn-help'),
   btnSettings: $('btn-settings'),
   btnGallery: $('btn-gallery'),
-  btnUpload: $('btn-upload'),
   btnSide: $('btn-side'),
   sideIcon: $('side-icon'),
   modebar: $('modebar'),
@@ -197,7 +196,6 @@ function updateLabels() {
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
   el.btnGallery.setAttribute('aria-label', t('upload'));
   $('gallery-text').textContent = t('upload');
-  $('upload-text').textContent = t('upload');
   for (const b of el.modebar.children) b.textContent = t(`modes.${b.dataset.mode}.name`);
 
   // The button on the right changes with the moment: repeat, ask about it, or cancel.
@@ -417,7 +415,6 @@ function bindGestures() {
     if (state === 'ready') return onLongPress();
   });
   el.btnGallery.addEventListener('click', openPicker);
-  el.btnUpload.addEventListener('click', openPicker);
   el.btnSettings.addEventListener('click', openSettings);
   el.btnHelp.addEventListener('click', () => {
     if (state === 'start') {
