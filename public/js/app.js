@@ -21,7 +21,8 @@ const MODES = ['describe', 'qibla'];
 const SHEET_SIZES = ['peek', 'auto', 'full'];
 // Laptop or PC with a mouse or trackpad: speak keyboard hints instead of touch gestures.
 const DESKTOP = matchMedia('(hover: hover) and (pointer: fine)').matches;
-const DEMO = new URLSearchParams(location.search).has('demo');
+// ?demo (pretend camera and compass, for testing) works only on the developer's own machine, never on the real site.
+const DEMO = new URLSearchParams(location.search).has('demo') && ['localhost', '127.0.0.1'].includes(location.hostname);
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)');
 
 const $ = (id) => document.getElementById(id);
@@ -34,7 +35,6 @@ const el = {
   message: $('message'),
   flash: $('flash'),
   srLink: $('sr-link'),
-  btnHelp: $('btn-help'),
   btnSettings: $('btn-settings'),
   btnGallery: $('btn-gallery'),
   btnSide: $('btn-side'),
@@ -192,7 +192,6 @@ function updateLabels() {
   el.wordmark.textContent = t('appName');
   el.srLink.textContent = t('srModeButton');
   $('drop-text').textContent = t('dropHere');
-  el.btnHelp.setAttribute('aria-label', t('sr.help'));
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
   el.btnGallery.setAttribute('aria-label', t('upload'));
   $('gallery-text').textContent = t('upload');
@@ -416,13 +415,6 @@ function bindGestures() {
   });
   el.btnGallery.addEventListener('click', openPicker);
   el.btnSettings.addEventListener('click', openSettings);
-  el.btnHelp.addEventListener('click', () => {
-    if (state === 'start') {
-      unlockVoice();
-      sounds.unlock();
-    }
-    sayHelp();
-  });
   el.modebar.addEventListener('click', (e) => {
     const b = e.target.closest('[data-mode]');
     if (!b || b.dataset.mode === mode) return;

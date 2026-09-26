@@ -1,7 +1,8 @@
 // Opens the back camera, takes a still photo, and checks if it is too dark or blurry.
 
 let stream = null;
-const demo = new URLSearchParams(location.search).has('demo');
+// Pretend camera for testing: only on the developer's own machine, never on the real site.
+const demo = new URLSearchParams(location.search).has('demo') && ['localhost', '127.0.0.1'].includes(location.hostname);
 
 const within = (ms, p, name) =>
   Promise.race([p, new Promise((_, reject) => setTimeout(() => reject(Object.assign(new Error(name), { name })), ms))]);

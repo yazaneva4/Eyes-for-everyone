@@ -310,7 +310,7 @@ body[data-photo='on'] #photo {
 }
 body[data-state='thinking'] .edge {
   opacity: 1;
-  background: conic-gradient(from var(--angle), #f4f6f9, #9aa1ab, #ffffff, #7d848e, #f4f6f9);
+  background: conic-gradient(from var(--angle), #f4f6f9, #5aa0ff, #ffffff, #2f6fe0, #f4f6f9);
 }
 body.recording .edge {
   background: var(--fg);
@@ -649,14 +649,15 @@ body[data-facing='yes'] .compass .qibla-mark {
   border-radius: 50%;
   background:
     radial-gradient(ellipse 34% 26% at 36% 26%, #fff 0%, rgb(255 255 255 / 0.9) 35%, transparent 100%),
-    radial-gradient(ellipse 40% 22% at 60% 80%, rgb(255 255 255 / 0.55), transparent 100%),
-    radial-gradient(circle at 42% 36%, #fbfcfd 0%, #e2e5ea 30%, #bfc4cb 55%, #8d939c 78%, #5d626a 100%);
+    radial-gradient(ellipse 46% 26% at 60% 82%, rgb(90 160 255 / 0.75), transparent 100%),
+    radial-gradient(ellipse 30% 40% at 88% 50%, rgb(60 120 255 / 0.45), transparent 100%),
+    radial-gradient(circle at 42% 36%, #fbfcfd 0%, #dfe6f1 30%, #b3c0d6 55%, #6f84a8 78%, #34486e 100%);
   box-shadow:
-    inset -10px -16px 28px rgb(40 44 52 / 0.45),
+    inset -10px -16px 28px rgb(20 50 120 / 0.5),
     inset 10px 12px 22px rgb(255 255 255 / 0.7),
-    0 0 0 1px rgb(255 255 255 / 0.35),
+    0 0 0 1px rgb(170 205 255 / 0.45),
     0 24px 50px -16px rgb(0 0 0 / 0.6),
-    0 0 60px -18px rgb(230 235 245 / 0.7);
+    0 0 70px -14px rgb(60 140 255 / 0.75);
   transform: scale(calc(0.94 + var(--level) * 0.3));
   transition:
     opacity 0.35s ease,
@@ -668,10 +669,12 @@ body[data-facing='yes'] .compass .qibla-mark {
   inset: 8%;
   border-radius: 50%;
   background:
-    radial-gradient(40% 30% at 30% 70%, rgb(255 255 255 / 0.55), transparent 70%),
-    radial-gradient(35% 25% at 72% 35%, rgb(200 210 225 / 0.6), transparent 70%);
+    radial-gradient(40% 30% at 30% 70%, rgb(110 175 255 / 0.9), transparent 70%),
+    radial-gradient(35% 25% at 72% 35%, rgb(255 255 255 / 0.6), transparent 70%),
+    radial-gradient(30% 30% at 55% 50%, rgb(40 110 255 / 0.55), transparent 70%);
   filter: blur(6px);
-  mix-blend-mode: soft-light;
+  mix-blend-mode: screen;
+  opacity: 0.8;
   animation: turn 5s linear infinite reverse;
 }
 /* Ripples that spread from the orb while you speak */
@@ -679,7 +682,7 @@ body[data-facing='yes'] .compass .qibla-mark {
   position: absolute;
   inset: -2px;
   border-radius: 50%;
-  border: 2px solid rgb(235 240 248 / 0.55);
+  border: 2px solid rgb(120 180 255 / 0.65);
   opacity: 0;
   pointer-events: none;
 }
@@ -951,6 +954,12 @@ body.recording .sheet {
   justify-items: center;
   gap: 10px;
   pointer-events: none;
+}
+.topbar .pill {
+  grid-column: 2;
+}
+#btn-settings {
+  grid-column: 3;
 }
 .topbar > * {
   pointer-events: auto;
