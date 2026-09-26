@@ -48,17 +48,21 @@ export function enableServerVoice(mode) {
   serverVoice = mode;
 }
 
+// Backup voice (only if ElevenLabs cannot be reached): the most natural voice on the device,
+// never the robotic novelty voices.
+const ROBOTIC = /fred|albert|zarvox|trinoids|whisper|wobble|bad news|good news|bahh|bells|boing|bubbles|cellos|jester|organ|superstar|hysterical|junior|ralph|kathy|deranged|pipe|espeak|robot/i;
+const NATURAL = [/google/i, /premium/i, /enhanced/i, /natural/i, /neural/i, /siri/i, /samantha|ava|allison|susan|zoe|evan|nathan|karen|daniel|moira|tessa/i, /microsoft .*online/i];
+
 function voiceFor(lang) {
   const locale = LOCALES[lang].toLowerCase();
   const norm = (v) => v.lang.replace('_', '-').toLowerCase();
-  const matches = voices.filter((v) => norm(v).startsWith(lang));
-  return (
-    matches.find((v) => norm(v) === locale && v.localService) ||
-    matches.find((v) => norm(v) === locale) ||
-    matches.find((v) => v.localService) ||
-    matches[0] ||
-    null
-  );
+  const matches = voices.filter((v) => norm(v).startsWith(lang) && !ROBOTIC.test(v.name));
+  if (!matches.length) return null;
+  const score = (v) => {
+    const i = NATURAL.findIndex((re) => re.test(v.name));
+    return (i === -1 ? 0 : 100 - i * 5) + (norm(v) === locale ? 10 : 0) + (v.localService ? 1 : 0);
+  };
+  return matches.slice().sort((x, y) => score(y) - score(x))[0];
 }
 
 export function splitSentences(text) {
