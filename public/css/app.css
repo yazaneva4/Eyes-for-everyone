@@ -458,13 +458,15 @@ body[data-state='thinking'] .orb3d {
     inset 0 1px 1px var(--rim-hi),
     0 20px 50px -18px var(--shadow);
   transform: rotate(calc(var(--heading, 0deg) * -1));
-  transition: transform 0.12s linear;
 }
 .compass .ticks {
   position: absolute;
   inset: 8px;
   border-radius: 50%;
-  background: repeating-conic-gradient(from -1deg, color-mix(in srgb, var(--fg) 60%, transparent) 0 2deg, transparent 2deg 30deg);
+  /* like a real compass face: bold marks every 30°, fine marks every 10° */
+  background:
+    repeating-conic-gradient(from -1deg, color-mix(in srgb, var(--fg) 85%, transparent) 0 2deg, transparent 2deg 30deg),
+    repeating-conic-gradient(from -0.5deg, color-mix(in srgb, var(--fg) 45%, transparent) 0 1deg, transparent 1deg 10deg);
   -webkit-mask: radial-gradient(circle, transparent 78%, #000 79%);
   mask: radial-gradient(circle, transparent 78%, #000 79%);
 }
@@ -524,9 +526,7 @@ body[data-running='qibla'] .compass .qibla-mark {
   font-size: min(13vmin, 58px);
   color: var(--fg);
   transform: rotate(var(--turn, 0deg));
-  transition:
-    transform 0.12s linear,
-    opacity 0.3s;
+  transition: opacity 0.3s;
   filter: drop-shadow(0 4px 10px rgb(0 0 0 / 0.55));
   opacity: 0;
   pointer-events: none;

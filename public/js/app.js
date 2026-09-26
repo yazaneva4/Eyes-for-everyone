@@ -995,14 +995,30 @@ async function runQibla(my) {
   let lastText = '';
   let warnedCalibration = false;
   let facts = null;
-  // The pointer's angle, unwrapped so it always turns the short way (no spin from 179° to -179°).
-  let pointer = null;
+  // Compass physics: the dial has weight. Each frame a spring pulls it toward the real heading and
+  // friction slows it, so it swings, overshoots a little and settles, like a needle floating in liquid.
+  let realHeading = null;
+  let dial = null; // the dial's angle (unwrapped, so it always turns the short way)
+  let spin = 0; // its speed, degrees per frame
+  let target = 0;
+  const physics = () => {
+    if (my !== op) return;
+    if (realHeading != null) {
+      if (dial == null) dial = realHeading;
+      const pull = ((realHeading - dial) % 360 + 540) % 360 - 180;
+      spin = spin * 0.86 + pull * 0.045;
+      dial += spin;
+      el.body.style.setProperty('--heading', `${dial.toFixed(2)}deg`);
+      // The Kaaba arrow points at the Kaaba from wherever the dial currently shows.
+      el.body.style.setProperty('--turn', `${(target - dial).toFixed(2)}deg`);
+    }
+    requestAnimationFrame(physics);
+  };
+  requestAnimationFrame(physics);
   // startQibla asks the iPhone for compass permission right now, inside the touch that got us here.
   const pending = startQibla(({ heading, turn, accuracy }) => {
     if (my !== op) return;
-    el.body.style.setProperty('--heading', `${heading.toFixed(1)}deg`);
-    pointer = pointer == null ? turn : pointer + ((((turn - pointer) % 360) + 540) % 360) - 180;
-    el.body.style.setProperty('--turn', `${pointer.toFixed(1)}deg`);
+    realHeading = heading; // the physics loop moves the dial toward it
     const off = Math.abs(turn);
     const now = Date.now();
     // iPhone tells us when the compass is unsure (accuracy in degrees, -1 = unknown).
@@ -1058,6 +1074,7 @@ async function runQibla(my) {
   }
   if (cancelled || my !== op) return q.stop();
   el.body.style.setProperty('--target', `${q.target.toFixed(1)}deg`);
+  target = q.target;
   facts = { km: num(q.distanceKm), deg: num(q.target), dir: t(`compass.${compassPoint(q.target)}`) };
   if (!q.compass) {
     // Laptop or a phone without a compass: it cannot know which way you face,
