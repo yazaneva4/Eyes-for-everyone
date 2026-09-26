@@ -669,9 +669,24 @@ async function retake() {
   if (my === op && state === 'ready') takePhoto();
 }
 
+// Counts down 5 seconds out loud before the photo, so there is time to aim the camera.
+async function countdown(my) {
+  for (let n = 5; n >= 1; n--) {
+    if (my !== op) return false;
+    const word = num(n);
+    fit(word, 64, true);
+    sounds.tap();
+    vibrate(30);
+    talk(word);
+    await new Promise((r) => setTimeout(r, 1000));
+  }
+  return my === op;
+}
+
 async function takePhoto() {
   const my = ++op;
   stopSpeaking();
+  if (!(await countdown(my))) return;
   if (!cameraRunning()) {
     if (!(await cameraOn(my))) return;
     await new Promise((r) => setTimeout(r, 500));
@@ -1199,7 +1214,7 @@ async function checkServer() {
 function preloadPrompts() {
   // Fetch the ElevenLabs audio for the common phrases now, so they play instantly later.
   preload(
-    [t('disclaimer'), readyPrompt(), t('ready'), t('tapAgain'), t('newPhoto'), t('askNow'), t('qiblaLocating'), t('facing'), t('almost'), t('noAnswer'), t('cancelled')],
+    ['5', '4', '3', '2', '1'].map((n) => num(+n)).concat([t('disclaimer'), readyPrompt(), t('ready'), t('tapAgain'), t('newPhoto'), t('askNow'), t('qiblaLocating'), t('facing'), t('almost'), t('noAnswer'), t('cancelled')]),
     settings.lang
   );
 }
