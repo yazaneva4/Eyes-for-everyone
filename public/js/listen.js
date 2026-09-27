@@ -82,9 +82,15 @@ async function recordForServer(lang, mime, onAutoStop) {
   let quietSince = 0;
   let calm = 0;
   let prev = 0;
+  let smooth = 0;
+  let loudTicks = 0;
   const vad = setInterval(() => {
-    const lv = meter.level();
-    peak = Math.max(peak, lv);
+    const raw = meter.level();
+    peak = Math.max(peak, raw);
+    // The meter reads about 10 ms of sound; noise flickers at that scale. Decide on a smoothed
+    // level (about a quarter of a second) so random peaks in fan or traffic noise are not "speech".
+    smooth = smooth ? smooth * 0.7 + raw * 0.3 : raw;
+    const lv = smooth;
     const now = Date.now();
     if (floor === null) {
       if (now - started < 300) return void (calm = Math.max(calm, lv));
@@ -97,9 +103,13 @@ async function recordForServer(lang, mime, onAutoStop) {
     if (lv < floor) floor = lv;
     else floor += (lv - floor) * (steady ? 0.02 : 0.002);
     const speech = Math.max(0.1, floor * 2.2);
-    if (lv > speech) {
+    // Speech must last a moment (2 readings in a row) before it counts.
+    loudTicks = lv > speech ? loudTicks + 1 : 0;
+    if (loudTicks >= 2) {
       heard = true;
       quietSince = 0;
+    } else if (lv > speech && heard) {
+      quietSince = 0; // still talking
     } else if (heard) {
       quietSince ||= now;
       if (now - quietSince > END_SILENCE_MS) {
