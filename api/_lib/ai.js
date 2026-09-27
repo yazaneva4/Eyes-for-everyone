@@ -47,6 +47,7 @@ export async function checkKeys() {
   const geminiReal = async () => {
     if (!k.gemini) return ['gemini', { status: 0, hint: 'no key set' }];
     let last = { status: -1, hint: 'could not reach provider' };
+    const tried = {};
     for (const gm of gms) {
       try {
         const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${gm}:generateContent`, {
@@ -55,8 +56,9 @@ export async function checkKeys() {
           body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Say ok' }] }], generationConfig: { maxOutputTokens: 5 } }),
           signal: AbortSignal.timeout(10000),
         });
-        last = { status: r.status, hint: hint(r.status), model: gm };
+        last = { status: r.status, hint: hint(r.status), model: gm, tried };
         if (r.status !== 404) return ['gemini', last];
+        tried[gm] = `404: ${(await readError(r)).slice(0, 160)}`;
       } catch {}
     }
     return ['gemini', last];
