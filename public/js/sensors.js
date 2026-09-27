@@ -76,18 +76,20 @@ export async function startQibla(onUpdate, demo = false, onPlace = null) {
   const where = demo ? { latitude: 24.7136, longitude: 46.6753 } : await position();
   let target = qiblaBearing(where.latitude, where.longitude);
   let distanceKm = kaabaDistanceKm(where.latitude, where.longitude);
+  let accuracy = where.accuracy ?? null; // metres
   // Keep following your location while Qibla is open: move to another area and the angle and
-  // distance update (onPlace is told whenever the Qibla changes by half a degree or half a kilometre).
+  // distance update (onPlace is told whenever you move about 50 metres or the angle changes).
   let watchId = null;
   if (!demo && navigator.geolocation) {
     watchId = navigator.geolocation.watchPosition(
       (p) => {
         const t2 = qiblaBearing(p.coords.latitude, p.coords.longitude);
         const d2 = kaabaDistanceKm(p.coords.latitude, p.coords.longitude);
-        if (Math.abs(turnBy(t2, target)) < 0.5 && Math.abs(d2 - distanceKm) < 0.5) return;
+        if (Math.abs(turnBy(t2, target)) < 0.05 && Math.abs(d2 - distanceKm) < 0.05) return;
         target = t2;
         distanceKm = d2;
-        onPlace?.({ target, distanceKm });
+        accuracy = p.coords.accuracy;
+        onPlace?.({ target, distanceKm, accuracy });
       },
       () => {},
       { enableHighAccuracy: true, maximumAge: 0 }
@@ -130,6 +132,9 @@ export async function startQibla(onUpdate, demo = false, onPlace = null) {
     },
     get distanceKm() {
       return distanceKm;
+    },
+    get accuracy() {
+      return accuracy;
     },
     compass: got,
     motionBlocked: !got && !granted,

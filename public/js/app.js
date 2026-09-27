@@ -5,7 +5,7 @@
 // Switch with the two tabs at the bottom, a sideways swipe, or ← / →.
 // Also: long-press repeats · hold 3 s opens settings · swipe down or O opens a picture ·
 // drag the answer sheet to resize it · laptop: Space = tap, drop or paste a picture.
-import { t, setLang, LANG_ORDER } from './i18n.js';
+import { t, setLang, LANG_ORDER, LOCALES } from './i18n.js';
 import { settings, save, applyLook, RATES, SIZES, THEMES, step } from './settings.js';
 import { sounds, vibrate } from './sounds.js';
 import { speak, speakStream, stopSpeaking, unlockVoice, enableServerVoice, splitSentences, preload, voiceLevel, voicePlaying } from './voice.js';
@@ -1035,9 +1035,12 @@ function stopQibla() {
 
 // The real figures from your location: exact angle from north, a 16-point direction, the distance,
 // and how far to turn from north (whichever way is shorter).
-function placeFacts(bearing, km) {
+function placeFacts(bearing, km, accuracy) {
   const turn = bearing <= 180 ? t('fromNorthRight', { n: num(bearing) }) : t('fromNorthLeft', { n: num(360 - bearing) });
-  return { km: num(km), deg: num(bearing), dir: t(`compass16.${compassPoint16(bearing)}`), turn };
+  // Distance to the nearest 100 metres, so moving across town visibly changes it.
+  const km1 = new Intl.NumberFormat(LOCALES[settings.lang], { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(km);
+  const acc = accuracy == null ? '' : accuracy < 1000 ? t('accuracyM', { n: num(accuracy) }) : t('accuracyKm', { n: num(accuracy / 1000) });
+  return { km: km1, deg: num(bearing), dir: t(`compass16.${compassPoint16(bearing)}`), turn, acc, rawKm: km, rawDeg: bearing };
 }
 
 async function runQibla(my) {
@@ -1047,6 +1050,7 @@ async function runQibla(my) {
   let warnedCalibration = false;
   let facts = null;
   let noCompassKey = null; // which "no compass" message is showing, to refresh it when you move
+  let spokenAt = { km: 0, deg: 0 }; // the figures last read aloud
   // Compass physics: the dial has weight. Each frame a spring pulls it toward the real heading and
   // friction slows it, so it swings, overshoots a little and settles, like a needle floating in liquid.
   let realHeading = null;
@@ -1114,9 +1118,14 @@ async function runQibla(my) {
     if (my !== op || !facts) return;
     target = place.target;
     el.body.style.setProperty('--target', `${target.toFixed(1)}deg`);
-    facts = placeFacts(place.target, place.distanceKm);
+    facts = placeFacts(place.target, place.distanceKm, place.accuracy);
     qiblaSay = t(noCompassKey || 'qiblaIntro', facts);
-    if (el.body.dataset.running === 'qibla-none') say(qiblaSay);
+    if (el.body.dataset.running !== 'qibla-none') return;
+    // The screen follows every move; the voice speaks again only after a real change (1 km or 1 degree).
+    if (Math.abs(place.distanceKm - spokenAt.km) >= 1 || Math.abs(((place.target - spokenAt.deg + 540) % 360) - 180) >= 1) {
+      spokenAt = { km: place.distanceKm, deg: place.target };
+      say(qiblaSay);
+    } else show(qiblaSay);
   });
   let cancelled = false;
   qibla = { stop: () => (cancelled = true) };
@@ -1137,7 +1146,8 @@ async function runQibla(my) {
   if (cancelled || my !== op) return q.stop();
   el.body.style.setProperty('--target', `${q.target.toFixed(1)}deg`);
   target = q.target;
-  facts = placeFacts(q.target, q.distanceKm);
+  facts = placeFacts(q.target, q.distanceKm, q.accuracy);
+  spokenAt = { km: q.distanceKm, deg: q.target };
   if (!q.compass) {
     // Laptop or a phone without a compass: it cannot know which way you face,
     // so no compass is drawn, only the facts, and where to use it instead.
