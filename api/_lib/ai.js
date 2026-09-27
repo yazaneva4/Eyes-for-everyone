@@ -102,7 +102,7 @@ export async function checkKeys() {
       return ['elevenlabs', { status: 200, hint: 'ok' }];
     } catch (e) {
       const m = /TTS (\d+): (.*)/s.exec(String(e.message)) || [];
-      return ['elevenlabs', { status: +m[1] || -1, hint: hint(+m[1] || -1), reason: (m[2] || String(e.message)).slice(0, 200) }];
+      return ['elevenlabs', { status: +m[1] || -1, hint: QUOTA.test(e.message) ? 'out of credits' : hint(+m[1] || -1), reason: (m[2] || String(e.message)).slice(0, 200) }];
     }
   };
   const out = await Promise.all([
