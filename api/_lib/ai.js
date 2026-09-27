@@ -91,10 +91,21 @@ export async function checkKeys() {
     const ok = Object.values(models).some((x) => x.status === 200);
     return ['openrouter', { status: ok ? 200 : Object.values(models)[0]?.status ?? -1, hint: ok ? 'ok' : 'no free model worked', models }];
   };
+  // ElevenLabs: one real (one-word) voice request, so quota or permission problems show up here.
+  const elevenReal = async () => {
+    if (!k.elevenlabs) return ['elevenlabs', { status: 0, hint: 'no key set' }];
+    try {
+      await elevenSpeech('Hi.', 'en', 1);
+      return ['elevenlabs', { status: 200, hint: 'ok' }];
+    } catch (e) {
+      const m = /TTS (\d+): (.*)/s.exec(String(e.message)) || [];
+      return ['elevenlabs', { status: +m[1] || -1, hint: hint(+m[1] || -1), reason: (m[2] || String(e.message)).slice(0, 200) }];
+    }
+  };
   const out = await Promise.all([
     geminiReal(),
     openrouterReal(),
-    probe('elevenlabs', `https://api.elevenlabs.io/v1/voices/${voice}`, { 'xi-api-key': k.elevenlabs }),
+    elevenReal(),
   ]);
   return Object.fromEntries(out);
 }
@@ -152,7 +163,8 @@ async function readError(r) {
   const body = await r.text().catch(() => '');
   try {
     const j = JSON.parse(body);
-    return j.error?.message || body.slice(0, 200);
+    const d = j.detail;
+    return j.error?.message || (d && (typeof d === 'string' ? d : [d.status, d.message].filter(Boolean).join(': '))) || body.slice(0, 200);
   } catch {
     return body.slice(0, 200);
   }
