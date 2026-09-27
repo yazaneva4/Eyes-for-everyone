@@ -574,11 +574,30 @@ body[data-facing='yes'] .compass .qibla-mark {
 }
 
 /* Start: logo and name */
+/* Start: an app-icon squircle over a left-aligned name and one line saying what it does,
+   sitting low on the screen near your thumb (like an iOS welcome screen), not a centred poster. */
 .brand {
+  place-self: end stretch;
   display: grid;
-  justify-items: center;
-  gap: 20px;
-  text-align: center;
+  justify-items: start;
+  gap: 22px;
+  padding-inline: 6px;
+  padding-bottom: 4vh;
+  text-align: start;
+}
+.brand-text {
+  display: grid;
+  gap: 12px;
+}
+.tagline {
+  margin: 0;
+  max-width: 24ch;
+  font-size: clamp(15pt, 4.4vw, 19pt);
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
+  color: color-mix(in srgb, var(--fg) 82%, var(--bg));
 }
 .logo {
   width: min(30vmin, 128px);
@@ -592,11 +611,28 @@ body[data-facing='yes'] .compass .qibla-mark {
   stroke-width: 1.8;
 }
 .wordmark {
-  font-size: clamp(28pt, 8.5vw, 44pt);
-  line-height: 1.02;
-  letter-spacing: -0.03em;
-  max-width: 10ch;
+  font-size: clamp(34pt, 11vw, 56pt);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  max-width: 9ch;
   text-wrap: balance;
+}
+/* Brand elements arrive one after another (icon, name, line) */
+body[data-state='start'] .brand > *,
+body[data-state='start'] .brand-text > * {
+  animation: rise-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+body[data-state='start'] .brand-text {
+  animation-delay: 0.08s;
+}
+body[data-state='start'] .tagline {
+  animation-delay: 0.18s;
+}
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
 }
 
 /* Ready: viewfinder corners */

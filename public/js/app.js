@@ -43,6 +43,7 @@ const el = {
   fileInput: $('file-input'),
   settings: $('settings'),
   wordmark: $('wordmark'),
+  tagline: $('tagline'),
   liveStatus: $('live-status'),
   liveMessage: $('live-message'),
   sheet: document.querySelector('.sheet'),
@@ -200,6 +201,7 @@ function updateLabels() {
   const prompt = { start: t('tapToStart'), ready: readyPrompt(), listening: t('sr.stop'), thinking: t('sr.wait'), answer: t('tapAgain') }[state];
   el.stage.setAttribute('aria-label', prompt || t('appName'));
   el.wordmark.textContent = t('appName');
+  el.tagline.textContent = t('tagline');
   $('drop-text').textContent = t('dropHere');
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
   el.btnHelp.setAttribute('aria-label', t('sr.help'));

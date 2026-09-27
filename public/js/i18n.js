@@ -7,6 +7,7 @@ export const RTL = { ar: true };
 const STRINGS = {
   en: {
     appName: 'Eyes for Everyone',
+    tagline: 'Point your camera and hear what is in front of you.',
     status: { start: 'Start', ready: 'Tap', listening: 'Listening', thinking: 'Thinking', answer: 'Answer', settings: 'Settings' },
     tapToStart: 'Tap anywhere to start.',
     srModeButton: 'Screen reader mode',
@@ -90,6 +91,7 @@ const STRINGS = {
 
   ar: {
     appName: 'عيون للجميع',
+    tagline: 'وجّه الكاميرا واسمع ما أمامك.',
     status: { start: 'ابدأ', ready: 'انقر', listening: 'أستمع', thinking: 'أفكر', answer: 'الإجابة', settings: 'الإعدادات' },
     tapToStart: 'انقر في أي مكان للبدء.',
     srModeButton: 'وضع قارئ الشاشة',
@@ -173,6 +175,7 @@ const STRINGS = {
 
   ml: {
     appName: 'എല്ലാവർക്കും കണ്ണുകൾ',
+    tagline: 'ക്യാമറ ചൂണ്ടുക, മുന്നിലുള്ളത് കേൾക്കുക.',
     status: { start: 'തുടങ്ങുക', ready: 'തൊടുക', listening: 'കേൾക്കുന്നു', thinking: 'ചിന്തിക്കുന്നു', answer: 'ഉത്തരം', settings: 'ക്രമീകരണങ്ങൾ' },
     tapToStart: 'തുടങ്ങാൻ എവിടെയെങ്കിലും തൊടുക.',
     srModeButton: 'സ്ക്രീൻ റീഡർ മോഡ്',
