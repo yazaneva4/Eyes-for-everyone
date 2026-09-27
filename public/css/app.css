@@ -1481,9 +1481,16 @@ body[data-state='settings'] #btn-gallery {
   display: inline;
   white-space: nowrap;
 }
-/* The dock keeps Describe | Qibla in the middle and the repeat/ask button on the right */
+/* The dock keeps Describe | Qibla exactly in the middle: an equal empty column on the left
+   balances the repeat/ask button on the right. */
 .dock {
-  grid-template-columns: max-content 52px !important;
+  grid-template-columns: 52px max-content 52px !important;
+}
+.dock .modebar {
+  grid-column: 2;
+}
+.dock #btn-side {
+  grid-column: 3;
 }
 /* Phones: the mode switch sits above the corner button so nothing overlaps */
 @media (max-width: 520px) {
