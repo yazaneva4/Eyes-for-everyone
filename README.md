@@ -5,7 +5,7 @@ Tap to take a photo, ask a question out loud, tap again, and hear the answer.
 
 The app does two things:
 
-- **Describe:** tap anywhere to take a photo. The description **streams in and is read aloud while it is still being written**. Tap again for the next photo. Double-tap (or the mic button) to ask a question about the same photo: just speak, and the app **notices when you stop talking** and answers, like Siri. There is no stop button.
+- **Describe:** tap anywhere. A spoken 5-second countdown gives you time to aim, then the photo is taken and the app listens straight away: ask a question, or say nothing and it describes the photo. The description **streams in and is read aloud while it is still being written**. Tap again for the next photo. Double-tap (or the mic button) to ask a question about the same photo: just speak, and the app **notices when you stop talking** and answers, like Siri. There is no stop button.
 - **Qibla:** choose Qibla at the bottom (or swipe). It **starts by itself**: a live, talking compass with the distance and direction to the Kaaba. There is nothing to tap.
 
 | Gesture | What happens |
@@ -20,22 +20,7 @@ The app does two things:
 
 **Laptop / PC:** click anywhere to take a photo, or drop / paste a picture. **Upload photo** is in the bottom corner. A laptop has no compass, so Qibla does not draw one there: it says to use a phone, and gives the bearing from north and the distance.
 
---- | --- |
-| **Tap** (READY) | Takes a photo (shutter sound + buzz). Too dark or blurry? It tells you and waits. |
-| **Tap** (LISTENING) | Stops recording and asks the AI. |
-| **Tap** (ANSWER) | Take the **next photo** straight away (same mode). |
-| **Double-tap** (ANSWER) | Ask another question about the **same** photo. |
-| **Double-tap** (while listening / thinking) | Cancel and go back to the camera. |
-| **Press and hold** | Repeat the last answer. |
-| **Hold 3 seconds** | Settings: language, text size, speech speed, colours, screen reader mode (or tap ⚙). |
-| **Swipe left / right** (or tap a mode name) | Change mode: **Ask**, **Read**, **Money**, **Color**, **Light**, **Qibla**. |
-| **Swipe down** | Open a picture from the gallery. |
-
-There is no shutter button: **tap anywhere**. At the **bottom** are the **gallery** button, **Describe | Qibla**, and one button that changes with the moment (*repeat* when ready, *ask about it* after an answer). At the **top** are **help (?)** and **settings (⚙)**.
-
-**Laptop / PC:** click anywhere to take a photo, or drop / paste a picture. **Upload photo** is in the bottom corner. A laptop has no compass, so Qibla does not draw one there: it says to use a phone, and gives the bearing from north and the distance.
-
-| Say *repeat · faster · slower · louder · change language · bigger text* | Voice commands while listening (English, Arabic, Malayalam). |
+**Voice commands** (say them instead of a question, in English, Arabic or Malayalam): *repeat, faster, slower, louder, change language, bigger text*.
 
 Taps while THINKING are ignored, and extra taps within 500 ms are ignored so accidental double touches do nothing.
 
@@ -94,7 +79,7 @@ Eyes-for-Everyone/
    ```
    - **OpenRouter** (free models only) answers first: Qwen 3.8 27B, then Gemma 4. When they are busy or out of quota, **Gemini** (the cheapest Flash-Lite) answers instead. You need at least one of the two.
    - **ElevenLabs** (recommended) gives the app one natural voice in English, Arabic *and* Malayalam, and the best speech-to-text (Scribe).
-     Without it, the phone's own voice is used and Gemini does the speech-to-text.
+     Without it, or when its credits run out, the app switches straight to the device's most natural voice (never a robotic one) and Gemini does the speech-to-text. It tries ElevenLabs again every 5 minutes.
    With no keys at all, the app still runs in *demo mode* with a pretend answer.
 3. **Start it:**
    ```bash
@@ -153,11 +138,13 @@ Replies and ratings are kept in that browser only. Photos are never stored.
 
 ## Look and feel
 
-It is built to feel like a modern camera app, not a remote control:
-- The camera fills the screen, with viewfinder corners and a breathing shutter ring.
-- While you speak, rings around a microphone grow with your voice and the screen edge glows.
-- While it thinks, a rainbow edge turns around the screen and a colourful orb glows.
+It is built to feel like a calm, modern camera app, not a remote control:
+- Warm off-black with one accent colour (orange), a soft light from below and a fine film grain. Icons are from Phosphor Icons.
+- The camera fills the screen, with viewfinder corners.
+- A glowing orange orb spins while the app listens, thinks and talks. It grows when you or the AI speak loudly and shrinks when the voice is quiet.
+- While you speak, the screen edge glows with your voice; while it thinks, a warm light turns around the edge.
 - The answer rises in a frosted-glass sheet over the photo it describes.
+- Qibla: the Kaaba stays in its place on the compass ring and only turns with the compass; it glows when you face it.
 - Landscape puts the picture on one side and the words on the other.
 - **Adaptive Liquid Glass:** `glass.js` measures the picture behind every glass panel, several times a second over the live camera. It then picks the clearest glass (down to 42% opacity) that still keeps text at 7.5:1 contrast. Over dark scenes the glass is very clear, and over a bright window it frosts up.
 - The glass has a bright lens rim, a shine that follows your finger (and the phone's tilt on Android), a springy "gel" squish when you press it, and real light-bending refraction in Chrome.
@@ -173,7 +160,7 @@ It is built to feel like a modern camera app, not a remote control:
 ## Low-vision design
 
 - Text is 24 pt by default and can be set from 18 to 64 pt; it never scrolls. Long answers shrink to fit, then show one sentence at a time in step with the voice.
-- There are three themes, all well above 7:1 contrast: yellow on black (default), white on black, and black on white. The "liquid glass" panels are at least 85% opaque, so the camera behind them can't lower the contrast.
+- There are three themes, all well above 7:1 contrast: yellow on black (default), white on black, and black on white. The liquid-glass panels adjust their opacity to what is behind them, so the camera can never lower the contrast below 7.5:1.
 - The screen stays awake, and portrait and landscape both work.
 - Live regions announce every state to screen readers. **Screen reader mode** turns off the app's own voice so VoiceOver or TalkBack can read everything; the whole screen is one labelled button they can activate.
 - No tutorial: the first tap opens the camera (the phone asks for permission) and the app speaks the disclaimer once.

@@ -97,6 +97,7 @@ export async function checkKeys() {
   const elevenReal = async () => {
     if (!k.elevenlabs) return ['elevenlabs', { status: 0, hint: 'no key set' }];
     try {
+      elevenOutUntil = 0; // a real check, not the remembered answer
       await elevenSpeech('Hi.', 'en', 1);
       return ['elevenlabs', { status: 200, hint: 'ok' }];
     } catch (e) {
@@ -566,6 +567,7 @@ export async function askAIStream({ image, mime, question, lang, history, provid
 const EXT = { 'audio/webm': 'webm', 'audio/mp4': 'mp4', 'audio/ogg': 'ogg', 'audio/wav': 'wav', 'audio/mpeg': 'mp3', 'audio/aac': 'aac' };
 
 async function elevenTranscribe(buf, mime, lang) {
+  if (elevenOut()) throw new Error('ElevenLabs STT 401: quota_exceeded (remembered)');
   const form = new FormData();
   form.append('file', new Blob([buf], { type: mime }), `question.${EXT[mime] || 'webm'}`);
   form.append('model_id', process.env.ELEVENLABS_STT_MODEL || 'scribe_v2');
@@ -577,7 +579,7 @@ async function elevenTranscribe(buf, mime, lang) {
     body: form,
     signal: AbortSignal.timeout(20000),
   });
-  if (!r.ok) throw new Error(`ElevenLabs STT ${r.status}: ${await readError(r)}`);
+  if (!r.ok) throw noteEleven(new Error(`ElevenLabs STT ${r.status}: ${await readError(r)}`));
   const j = await r.json();
   return (j.text || '').trim();
 }
@@ -631,7 +633,21 @@ export async function transcribe({ audio, mime, lang }) {
 // eleven_flash_v2_5 is the fastest but has no Malayalam, so Malayalam uses eleven_v3.
 const ELEVEN_MODEL = { en: 'eleven_flash_v2_5', ar: 'eleven_flash_v2_5', ml: 'eleven_v3' };
 
+// Out of ElevenLabs credits: remember it for a few minutes (per server instance), so we stop
+// calling ElevenLabs (and filling the logs) until it may have been topped up.
+let elevenOutUntil = 0;
+const QUOTA = /quota_exceeded|credits remaining/i;
+export const elevenOut = () => Date.now() < elevenOutUntil;
+function noteEleven(e) {
+  if (QUOTA.test(e.message) && !elevenOut()) {
+    elevenOutUntil = Date.now() + 5 * 60 * 1000;
+    console.warn('ElevenLabs is out of credits; using the backup for 5 minutes.');
+  }
+  return e;
+}
+
 async function elevenSpeech(text, lang, speed = 1) {
+  if (elevenOut()) throw new Error('ElevenLabs TTS 401: quota_exceeded (remembered)');
   const voice = process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
   const model = process.env[`ELEVENLABS_TTS_MODEL_${lang.toUpperCase()}`] || process.env.ELEVENLABS_TTS_MODEL || ELEVEN_MODEL[lang];
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
@@ -646,7 +662,7 @@ async function elevenSpeech(text, lang, speed = 1) {
     }),
     signal: AbortSignal.timeout(20000),
   });
-  if (!r.ok) throw new Error(`ElevenLabs TTS ${r.status}: ${await readError(r)}`);
+  if (!r.ok) throw noteEleven(new Error(`ElevenLabs TTS ${r.status}: ${await readError(r)}`));
   return Buffer.from(await r.arrayBuffer());
 }
 

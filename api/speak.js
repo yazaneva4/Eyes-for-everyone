@@ -12,7 +12,6 @@ export default async function handler(req, res) {
   } catch (e) {
     // Out of ElevenLabs credits: tell the app, so it switches to the phone's own voice at once.
     if (/quota_exceeded|credits remaining/i.test(e.message)) {
-      console.error(String(e.message).slice(0, 300));
       return res.status(429).json({ error: 'quota' });
     }
     fail(res, e);
