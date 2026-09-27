@@ -30,6 +30,8 @@ export function kaabaDistanceKm(lat, lon) {
 
 /** 0 = north … 7 = north-west (eight compass points). */
 export const compassPoint = (bearing) => Math.round(bearing / 45) % 8;
+/** 0 = north … 15 = north-north-west (sixteen compass points, 22.5 degrees each). */
+export const compassPoint16 = (bearing) => Math.round(bearing / 22.5) % 16;
 
 function position() {
   return new Promise((resolve, reject) => {

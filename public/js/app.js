@@ -13,7 +13,7 @@ import { startCamera, stopCamera, capture, toJpegBase64, checkQuality, cameraRun
 import { startListening, useServerStt } from './listen.js';
 import { matchCommand } from './commands.js';
 import { initGlass } from './glass.js';
-import { startQibla, compassPoint } from './sensors.js';
+import { startQibla, compassPoint16 } from './sensors.js';
 
 const TIMING = { LONG: 700, SETTINGS: 3000, DOUBLE: 320, DEBOUNCE: 500, ASK_TIMEOUT: 40000 };
 const MIN_PT = 16;
@@ -1115,7 +1115,10 @@ async function runQibla(my) {
   if (cancelled || my !== op) return q.stop();
   el.body.style.setProperty('--target', `${q.target.toFixed(1)}deg`);
   target = q.target;
-  facts = { km: num(q.distanceKm), deg: num(q.target), dir: t(`compass.${compassPoint(q.target)}`) };
+  // The real figures from your location: exact angle from north, a 16-point direction, the distance,
+  // and how far to turn from north (whichever way is shorter).
+  const fromNorth = q.target <= 180 ? t('fromNorthRight', { n: num(q.target) }) : t('fromNorthLeft', { n: num(360 - q.target) });
+  facts = { km: num(q.distanceKm), deg: num(q.target), dir: t(`compass16.${compassPoint16(q.target)}`), turn: fromNorth };
   if (!q.compass) {
     // Laptop or a phone without a compass: it cannot know which way you face,
     // so no compass is drawn, only the facts, and where to use it instead.
