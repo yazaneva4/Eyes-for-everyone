@@ -657,6 +657,12 @@ async function goReady(prefix) {
   let problem = null;
   const cam = startCamera(el.video)
     .then(() => {
+      // Switched to Qibla (or away) while the camera was still starting: turn it straight off again.
+      if (mode !== 'describe') {
+        stopCamera(el.video);
+        el.body.dataset.camera = 'off';
+        return;
+      }
       el.body.dataset.camera = 'on';
       delete el.body.dataset.nocam;
     })
@@ -1242,7 +1248,10 @@ document.addEventListener('visibilitychange', () => {
     requestWakeLock();
     // Coming back: Qibla carries on by itself; Describe turns the camera back on.
     if (state === 'ready' && mode === 'qibla' && !qibla) goReady();
-    else if (state === 'ready' && !cameraRunning()) startCamera(el.video).then(() => (el.body.dataset.camera = 'on')).catch(() => {});
+    else if (state === 'ready' && mode === 'describe' && !cameraRunning())
+      startCamera(el.video)
+        .then(() => (mode === 'describe' ? (el.body.dataset.camera = 'on') : stopCamera(el.video)))
+        .catch(() => {});
     return;
   }
   // App hidden: stop microphone, camera, compass and speech right away.
