@@ -1103,6 +1103,8 @@ async function runQibla(my) {
   } catch {
     if (cancelled || my !== op) return;
     stopQibla();
+    // Without a location there is no Qibla to point at: do not draw an empty compass.
+    el.body.dataset.running = 'qibla-none';
     sounds.error();
     return say(t('noLocation'));
   }
