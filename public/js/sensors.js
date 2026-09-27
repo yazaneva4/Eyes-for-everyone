@@ -39,7 +39,8 @@ function position() {
     navigator.geolocation.getCurrentPosition(
       (p) => resolve(p.coords),
       () => reject(new Error('no-location')),
-      { enableHighAccuracy: true, timeout: 15000, maximumAge: 5 * 60 * 1000 }
+      // Always a fresh reading: an old, cached position would give the Qibla for where you were before.
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 }
     );
   });
 }
@@ -70,11 +71,29 @@ function headingFrom(e, absolute) {
  * Resolves to { stop(), target, distanceKm, compass } — compass is false on devices without one
  * (laptops), which still get the bearing and distance.
  */
-export async function startQibla(onUpdate, demo = false) {
+export async function startQibla(onUpdate, demo = false, onPlace = null) {
   const ask = window.DeviceOrientationEvent?.requestPermission?.(); // must happen before any await
   const where = demo ? { latitude: 24.7136, longitude: 46.6753 } : await position();
-  const target = qiblaBearing(where.latitude, where.longitude);
-  const distanceKm = kaabaDistanceKm(where.latitude, where.longitude);
+  let target = qiblaBearing(where.latitude, where.longitude);
+  let distanceKm = kaabaDistanceKm(where.latitude, where.longitude);
+  // Keep following your location while Qibla is open: move to another area and the angle and
+  // distance update (onPlace is told whenever the Qibla changes by half a degree or half a kilometre).
+  let watchId = null;
+  if (!demo && navigator.geolocation) {
+    watchId = navigator.geolocation.watchPosition(
+      (p) => {
+        const t2 = qiblaBearing(p.coords.latitude, p.coords.longitude);
+        const d2 = kaabaDistanceKm(p.coords.latitude, p.coords.longitude);
+        if (Math.abs(turnBy(t2, target)) < 0.5 && Math.abs(d2 - distanceKm) < 0.5) return;
+        target = t2;
+        distanceKm = d2;
+        onPlace?.({ target, distanceKm });
+      },
+      () => {},
+      { enableHighAccuracy: true, maximumAge: 0 }
+    );
+  }
+  const unwatch = () => watchId != null && navigator.geolocation.clearWatch(watchId);
   if (demo) {
     let h = 0;
     const timer = setInterval(() => {
@@ -104,5 +123,15 @@ export async function startQibla(onUpdate, demo = false) {
   // No readings within 3 seconds: no usable compass (most laptops).
   await new Promise((r) => setTimeout(r, 3000));
   if (!got) stop();
-  return { stop, target, distanceKm, compass: got, motionBlocked: !got && !granted };
+  return {
+    stop: () => (stop(), unwatch()),
+    get target() {
+      return target;
+    },
+    get distanceKm() {
+      return distanceKm;
+    },
+    compass: got,
+    motionBlocked: !got && !granted,
+  };
 }

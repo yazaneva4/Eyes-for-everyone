@@ -1033,12 +1033,20 @@ function stopQibla() {
   delete el.body.dataset.facing;
 }
 
+// The real figures from your location: exact angle from north, a 16-point direction, the distance,
+// and how far to turn from north (whichever way is shorter).
+function placeFacts(bearing, km) {
+  const turn = bearing <= 180 ? t('fromNorthRight', { n: num(bearing) }) : t('fromNorthLeft', { n: num(360 - bearing) });
+  return { km: num(km), deg: num(bearing), dir: t(`compass16.${compassPoint16(bearing)}`), turn };
+}
+
 async function runQibla(my) {
   let lastTick = 0;
   let lastSpoke = Date.now() + 6000; // let the introduction finish first
   let lastText = '';
   let warnedCalibration = false;
   let facts = null;
+  let noCompassKey = null; // which "no compass" message is showing, to refresh it when you move
   // Compass physics: the dial has weight. Each frame a spring pulls it toward the real heading and
   // friction slows it, so it swings, overshoots a little and settles, like a needle floating in liquid.
   let realHeading = null;
@@ -1101,7 +1109,15 @@ async function runQibla(my) {
       lastSpoke = now;
       talk(qiblaSay);
     }
-  }, DEMO);
+  }, DEMO, (place) => {
+    // You moved: new angle, distance and message, from where you are now.
+    if (my !== op || !facts) return;
+    target = place.target;
+    el.body.style.setProperty('--target', `${target.toFixed(1)}deg`);
+    facts = placeFacts(place.target, place.distanceKm);
+    qiblaSay = t(noCompassKey || 'qiblaIntro', facts);
+    if (el.body.dataset.running === 'qibla-none') say(qiblaSay);
+  });
   let cancelled = false;
   qibla = { stop: () => (cancelled = true) };
   el.body.dataset.running = 'qibla';
@@ -1121,17 +1137,15 @@ async function runQibla(my) {
   if (cancelled || my !== op) return q.stop();
   el.body.style.setProperty('--target', `${q.target.toFixed(1)}deg`);
   target = q.target;
-  // The real figures from your location: exact angle from north, a 16-point direction, the distance,
-  // and how far to turn from north (whichever way is shorter).
-  const fromNorth = q.target <= 180 ? t('fromNorthRight', { n: num(q.target) }) : t('fromNorthLeft', { n: num(360 - q.target) });
-  facts = { km: num(q.distanceKm), deg: num(q.target), dir: t(`compass16.${compassPoint16(q.target)}`), turn: fromNorth };
+  facts = placeFacts(q.target, q.distanceKm);
   if (!q.compass) {
     // Laptop or a phone without a compass: it cannot know which way you face,
     // so no compass is drawn, only the facts, and where to use it instead.
-    qibla = null;
+    qibla = q; // keeps following your location, so the figures update when you move
     el.body.dataset.running = 'qibla-none';
     // Motion access refused: say how to allow it. A phone without a compass is not told to "use your phone".
-    qiblaSay = t(DESKTOP ? 'qiblaNoCompass' : q.motionBlocked ? 'qiblaNoMotion' : 'qiblaNoCompassPhone', facts);
+    noCompassKey = DESKTOP ? 'qiblaNoCompass' : q.motionBlocked ? 'qiblaNoMotion' : 'qiblaNoCompassPhone';
+    qiblaSay = t(noCompassKey, facts);
     return say(qiblaSay);
   }
   qibla = q;
