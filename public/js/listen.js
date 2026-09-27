@@ -4,6 +4,7 @@
 import { LOCALES } from './i18n.js';
 import { speakerMode } from './voice.js';
 
+const DEBUG = new URLSearchParams(location.search).has('debug');
 const MAX_MS = 15000; // a spoken question is never this long
 const END_SILENCE_MS = 1200; // this much quiet after speech = finished
 const NOBODY_SPOKE_MS = 7000; // no speech at all within this time = no question
@@ -57,6 +58,7 @@ function makeMeter(stream) {
         return Math.min(1, Math.sqrt(sum / data.length) * 5);
       },
       close: () => ctx.close().catch(() => {}),
+      state: () => ctx.state,
       works: true,
     };
   } catch {
@@ -74,6 +76,7 @@ async function recordForServer(lang, mime, onAutoStop) {
   const chunks = [];
   rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
   const started = Date.now();
+  const ctxState = meter.state;
   // Listens to the loudness to know when you have finished speaking (like Siri), and remembers the
   // loudest moment, so a silent recording is never sent (an AI can "hear" words in silence).
   let peak = 0;
@@ -103,6 +106,8 @@ async function recordForServer(lang, mime, onAutoStop) {
     if (lv < floor) floor = lv;
     else floor += (lv - floor) * (steady ? 0.02 : 0.002);
     const speech = Math.max(0.1, floor * 2.2);
+    // ?debug: keep the last readings, so listening problems can be diagnosed
+    if (DEBUG) (window.__vad ||= []).push([now - started, +raw.toFixed(3), +lv.toFixed(3), +floor.toFixed(3), +speech.toFixed(3), heard ? 1 : 0, ctxState?.()]) > 400 && window.__vad.shift();
     // Speech must last a moment (2 readings in a row) before it counts.
     loudTicks = lv > speech ? loudTicks + 1 : 0;
     if (loudTicks >= 2) {
