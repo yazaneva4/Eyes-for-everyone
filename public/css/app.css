@@ -1314,6 +1314,22 @@ body[data-state='start']:not(.sr) .text-link {
 .swatches {
   gap: 10px;
 }
+/* Phones: the language switch gets its own full-width line, like the sliders,
+   so it never covers the word "Language" */
+@media (max-width: 480px) {
+  .set-row:has(.seg) {
+    grid-template-columns: 26px minmax(0, 1fr);
+    grid-template-areas:
+      'ic lbl'
+      'ctl ctl';
+  }
+  .set-row .seg {
+    justify-self: stretch;
+  }
+  .set-row .seg button {
+    flex: 1;
+  }
+}
 .sw {
   width: 40px;
   height: 40px;
