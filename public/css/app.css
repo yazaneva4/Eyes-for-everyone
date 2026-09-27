@@ -691,7 +691,9 @@ body[data-state='start'] .tagline {
    `scale` is separate from `transform`, so the state animations never cancel the loudness. */
 .orb3d {
   position: relative;
-  width: min(44vmin, 200px);
+  /* Fits the free space above the answer (with room to grow when the voice is loud) */
+  height: min(44vmin, 200px, 76%);
+  width: auto;
   aspect-ratio: 1;
   border-radius: 50%;
   overflow: hidden;
@@ -1494,7 +1496,7 @@ body.desktop #stage {
     max-height: calc(100dvh - 180px);
   }
   .orb3d {
-    width: 220px;
+    height: min(220px, 76%);
   }
   .compass {
     height: min(300px, 100%);
