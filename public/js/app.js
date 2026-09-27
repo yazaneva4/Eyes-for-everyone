@@ -8,7 +8,7 @@
 import { t, setLang, LANG_ORDER } from './i18n.js';
 import { settings, save, applyLook, RATES, SIZES, THEMES, step } from './settings.js';
 import { sounds, vibrate } from './sounds.js';
-import { speak, speakStream, stopSpeaking, unlockVoice, enableServerVoice, splitSentences, preload } from './voice.js';
+import { speak, speakStream, stopSpeaking, unlockVoice, enableServerVoice, splitSentences, preload, voiceLevel, voicePlaying } from './voice.js';
 import { startCamera, stopCamera, capture, toJpegBase64, checkQuality, cameraRunning } from './camera.js';
 import { startListening, useServerStt } from './listen.js';
 import { matchCommand } from './commands.js';
@@ -869,6 +869,30 @@ function meter(rec, my) {
   };
   tick();
 }
+
+// Feeds the AI voice's loudness to the CSS too, so the orb grows when it speaks loudly and shrinks
+// when it speaks softly. (While listening, meter() above uses your microphone instead.)
+(function voiceMeter() {
+  let smooth = 0;
+  let shown = -1;
+  let lastHeard = 0;
+  const tick = () => {
+    if (state !== 'listening') {
+      const on = voicePlaying();
+      if (on) lastHeard = performance.now();
+      // stays on through the short gaps between sentences, so the orb does not flicker
+      el.body.classList.toggle('speaking', performance.now() - lastHeard < 600);
+      smooth = smooth * 0.7 + (on ? voiceLevel() : 0) * 0.3;
+      const v = smooth < 0.005 ? 0 : +smooth.toFixed(3);
+      if (v !== shown) el.body.style.setProperty('--level', String((shown = v)));
+    } else {
+      el.body.classList.remove('speaking');
+      shown = -1;
+    }
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+})();
 
 async function finishListening() {
   if (state !== 'listening' || prompting || !recorderP) return;

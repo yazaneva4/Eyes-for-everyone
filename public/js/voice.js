@@ -124,6 +124,36 @@ for (const type of ['pointerup', 'touchend', 'click', 'keydown']) {
   }, { capture: true, passive: true });
 }
 
+// How loud the AI voice is right now (0 silent … 1 loud), for the orb.
+// ElevenLabs audio is measured for real; the backup voices cannot be measured, so they get a gentle
+// speech-like wobble instead.
+let analyser = null;
+let levelData = null;
+let playing = null; // 'measured' | 'estimated' | null
+function voiceOut(c) {
+  if (!analyser) {
+    analyser = c.createAnalyser();
+    analyser.fftSize = 512;
+    analyser.connect(c.destination);
+    levelData = new Uint8Array(analyser.fftSize);
+  }
+  return analyser;
+}
+export function voiceLevel() {
+  if (playing === 'measured' && analyser) {
+    analyser.getByteTimeDomainData(levelData);
+    let sum = 0;
+    for (const v of levelData) sum += ((v - 128) / 128) ** 2;
+    return Math.min(1, Math.sqrt(sum / levelData.length) * 4.5);
+  }
+  if (playing === 'estimated') {
+    const t = performance.now() / 1000;
+    return Math.max(0, 0.4 + 0.22 * Math.sin(t * 9) * Math.sin(t * 2.3) + 0.1 * Math.sin(t * 17));
+  }
+  return 0;
+}
+export const voicePlaying = () => !!playing;
+
 export function stopSpeaking() {
   token++;
   try {
@@ -133,6 +163,7 @@ export function stopSpeaking() {
     current?.stop();
   } catch {}
   current = null;
+  playing = null;
   player.pause();
 }
 
@@ -156,6 +187,7 @@ function speakBrowser(text, lang, my) {
       done = true;
       clearTimeout(timer);
       clearInterval(watch);
+      playing = null;
       resolve();
     };
     // onend is not always fired on every phone, so a timer backs it up.
@@ -163,6 +195,7 @@ function speakBrowser(text, lang, my) {
     const watch = setInterval(() => my !== token && finish(), 100);
     u.onend = finish;
     u.onerror = finish;
+    playing = 'estimated';
     speechSynthesis.speak(u);
   });
 }
@@ -277,11 +310,12 @@ async function playUrl(buffer, my) {
     const gain = c.createGain();
     src.buffer = buffer;
     gain.gain.value = Math.min(1, settings.volume);
-    src.connect(gain).connect(c.destination);
+    src.connect(gain).connect(voiceOut(c));
     let done = false;
     const finish = () => {
       if (done) return;
       done = true;
+      if (current === src) playing = null;
       clearInterval(watch);
       if (current === src) current = null;
       resolve(true);
@@ -296,6 +330,7 @@ async function playUrl(buffer, my) {
     }, 100);
     src.onended = finish;
     current = src;
+    playing = 'measured';
     src.start();
   });
 }
@@ -311,6 +346,7 @@ function playWithPlayer(buffer, my) {
       done = true;
       clearInterval(watch);
       clearTimeout(stall);
+      playing = null;
       URL.revokeObjectURL(url);
       resolve(ok);
     };
@@ -322,7 +358,10 @@ function playWithPlayer(buffer, my) {
     player.volume = Math.min(1, settings.volume);
     player
       .play()
-      .then(() => voiceLog('audio player is playing'))
+      .then(() => {
+        playing = 'estimated';
+        voiceLog('audio player is playing');
+      })
       .catch((e) => {
         voiceLog('audio player refused: ' + e.name);
         finish(false);
