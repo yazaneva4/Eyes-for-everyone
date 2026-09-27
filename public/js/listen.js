@@ -4,7 +4,7 @@
 import { LOCALES } from './i18n.js';
 import { speakerMode } from './voice.js';
 
-const MAX_MS = 30000;
+const MAX_MS = 15000; // a spoken question is never this long
 const END_SILENCE_MS = 1200; // this much quiet after speech = finished
 const NOBODY_SPOKE_MS = 7000; // no speech at all within this time = no question
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -81,6 +81,7 @@ async function recordForServer(lang, mime, onAutoStop) {
   let heard = false;
   let quietSince = 0;
   let calm = 0;
+  let prev = 0;
   const vad = setInterval(() => {
     const lv = meter.level();
     peak = Math.max(peak, lv);
@@ -89,6 +90,12 @@ async function recordForServer(lang, mime, onAutoStop) {
       if (now - started < 300) return void (calm = Math.max(calm, lv));
       floor = calm;
     }
+    // Keep learning the room noise the whole time. A steady sound (a fan, air conditioning, traffic,
+    // our own voice still fading) slowly becomes "the room"; speech rises and falls, so it stays speech.
+    const steady = Math.abs(lv - prev) < 0.15 * Math.max(lv, 0.02);
+    prev = lv;
+    if (lv < floor) floor = lv;
+    else floor += (lv - floor) * (steady ? 0.02 : 0.002);
     const speech = Math.max(0.1, floor * 2.2);
     if (lv > speech) {
       heard = true;
