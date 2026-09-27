@@ -81,11 +81,14 @@ export async function checkKeys() {
           signal: AbortSignal.timeout(20000),
         });
         let code;
+        let reason;
         try {
           const j = await r.json();
           code = j.error?.code ?? j.error?.metadata?.raw?.slice?.(0, 0);
+          // The provider's own words (never contains our key), so a failing model can be diagnosed.
+          reason = [j.error?.message, j.error?.metadata?.raw].filter(Boolean).join(' | ').slice(0, 240) || undefined;
         } catch {}
-        models[m] = { status: r.status, hint: hint(r.status), ...(code !== undefined && r.status !== 200 ? { code } : {}) };
+        models[m] = { status: r.status, hint: hint(r.status), ...(code !== undefined && r.status !== 200 ? { code, reason } : {}) };
       } catch {
         models[m] = { status: -1, hint: 'could not reach provider' };
       }
