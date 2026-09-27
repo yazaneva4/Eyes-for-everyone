@@ -44,6 +44,11 @@ if ('speechSynthesis' in window) {
   speechSynthesis.addEventListener?.('voiceschanged', loadVoices);
 }
 
+// When ElevenLabs is out of credits, the phone's voice is used straight away (no waiting on
+// failed requests) and ElevenLabs is tried again after a while.
+let serverRestUntil = 0;
+const serverOn = () => Date.now() >= serverRestUntil && serverVoice === 'always';
+
 export function enableServerVoice(mode) {
   serverVoice = mode;
 }
@@ -227,6 +232,7 @@ function limited(job, urgent) {
 
 async function fetchVoice(text, lang, speed) {
   for (let attempt = 0; ; attempt++) {
+    if (Date.now() < serverRestUntil) throw new Error('tts');
     const r = await fetch('/api/speak', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -234,6 +240,11 @@ async function fetchVoice(text, lang, speed) {
     });
     if (r.ok) return r.arrayBuffer();
     voiceLog(`ElevenLabs answered ${r.status} for: ${text.slice(0, 30)}`);
+    if (r.status === 429 || r.status === 503) {
+      serverRestUntil = Date.now() + 5 * 60 * 1000;
+      voiceLog('ElevenLabs unavailable (no credits?) — using the phone voice for 5 minutes');
+      throw new Error('tts');
+    }
     if (attempt >= 1) throw new Error('tts');
     await new Promise((res) => setTimeout(res, 500));
   }
@@ -276,7 +287,7 @@ function fetchServerAudio(text, lang, urgent = true) {
 
 /** Warm the cache for prompts the app is about to say, so they start instantly. */
 export function preload(texts, lang) {
-  if (serverVoice !== 'always') return;
+  if (!serverOn()) return;
   texts.forEach((t) => splitSentences(t).forEach((s) => fetchServerAudio(s, lang, false).catch(() => {})));
 }
 
@@ -390,7 +401,7 @@ export async function speak(text, { lang = settings.lang, onSentence } = {}) {
   speakerMode(false);
   const my = token;
   const parts = splitSentences(text);
-  const useServer = serverVoice === 'always' || (serverVoice === 'fallback' && !voiceFor(lang));
+  const useServer = serverOn() || (serverVoice === 'fallback' && !voiceFor(lang) && Date.now() >= serverRestUntil);
   // Ask the server for every sentence at once so playback has no gaps.
   const urls = useServer ? parts.map((p) => fetchServerAudio(p, lang).catch(() => null)) : [];
   for (let i = 0; i < parts.length; i++) {
@@ -418,7 +429,7 @@ export function speakStream({ lang = settings.lang, onSentence } = {}) {
   stopSpeaking();
   speakerMode(false);
   const my = token;
-  const useServer = serverVoice === 'always' || (serverVoice === 'fallback' && !voiceFor(lang));
+  const useServer = serverOn() || (serverVoice === 'fallback' && !voiceFor(lang) && Date.now() >= serverRestUntil);
   const queue = [];
   let buf = '';
   let ended = false;
