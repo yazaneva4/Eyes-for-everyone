@@ -414,6 +414,8 @@ body[data-state='answer'] .orb {
   min-height: 0;
   position: relative;
   display: grid;
+  /* One cell exactly the size of the free space, so pictures inside can size themselves to it */
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
   place-items: center;
 }
 .focus > * {
