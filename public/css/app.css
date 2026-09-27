@@ -1221,9 +1221,15 @@ body[data-state='start']:not(.sr) .text-link {
 }
 .sheet-head h2 {
   margin: 0;
-  font-size: 20pt;
+  min-width: 0;
+  /* Long titles (Malayalam) shrink and wrap instead of pushing Done off the screen */
+  font-size: clamp(15pt, 5.4vw, 20pt);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
 }
 .done-btn {
+  flex: none;
+  white-space: nowrap;
   border: 0;
   border-radius: 999px;
   padding: 10px 20px;
@@ -1314,7 +1320,8 @@ body[data-state='start']:not(.sr) .text-link {
 /* Phones: the language switch gets its own full-width line, like the sliders,
    so it never covers the word "Language" */
 @media (max-width: 480px) {
-  .set-row:has(.seg) {
+  .set-row:has(.seg),
+  .set-row:has(.swatches) {
     grid-template-columns: 26px minmax(0, 1fr);
     grid-template-areas:
       'ic lbl'
