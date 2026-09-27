@@ -82,8 +82,10 @@ function setState(s) {
   state = s;
   el.body.dataset.state = s;
   if (s !== 'answer' && el.body.dataset.sheet !== 'auto') el.body.dataset.sheet = 'auto';
-  morph(el.pill, () => (el.statusWord.textContent = t(`status.${s}`)));
-  el.liveStatus.textContent = t(`status.${s}`);
+  // Qibla cannot be tapped, so its pill names the mode instead of saying "Tap".
+  const word = s === 'ready' && mode === 'qibla' ? t('modes.qibla.name') : t(`status.${s}`);
+  morph(el.pill, () => (el.statusWord.textContent = word));
+  el.liveStatus.textContent = word;
   if (s !== 'start') vibrate(40);
   el.body.dataset.photo = photo && ['listening', 'thinking', 'answer'].includes(s) ? 'on' : 'off';
   updateLabels();

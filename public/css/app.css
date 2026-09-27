@@ -435,8 +435,11 @@ body[data-state='thinking'] .orb3d {
 
 .compass {
   position: relative;
-  width: min(52vmin, 240px);
+  /* As big as it can be without sliding under the text panel: a long message leaves less room */
+  height: min(52vmin, 240px, 100%);
+  width: auto;
   aspect-ratio: 1;
+  container-type: size;
   display: grid;
   place-items: center;
 }
@@ -488,7 +491,7 @@ body[data-state='thinking'] .orb3d {
   font-size: 16pt;
   font-weight: 800;
   line-height: 1;
-  --r: calc(min(52vmin, 240px) / 2 - 18px); /* on the rim */
+  --r: calc(50cqmin - 18px); /* on the rim */
   transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--r) * -1)) rotate(calc(var(--a) * -1));
   font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
 }
@@ -510,7 +513,7 @@ body[data-state='thinking'] .orb3d {
   left: 50%;
   top: 50%;
   font-size: 34px;
-  --r: calc(min(52vmin, 240px) / 2 - 46px); /* just inside the rim, where the arrow points */
+  --r: calc(50cqmin - 46px); /* just inside the rim, where the arrow points */
   transform: translate(-50%, -50%) rotate(var(--target, 0deg)) translateY(calc(var(--r) * -1)) rotate(calc(var(--target, 0deg) * -1 + var(--heading, 0deg)));
   display: grid;
   place-items: center;
@@ -568,14 +571,6 @@ body[data-facing='yes'] .compass .qibla-mark {
 @keyframes kaaba-glow {
   50% {
     box-shadow: 0 0 44px 6px var(--fg);
-  }
-}
-@media (min-width: 1000px) and (orientation: landscape) {
-  .compass .cardinal {
-    --r: 132px;
-  }
-  .compass .qibla-mark {
-    --r: 104px;
   }
 }
 
@@ -1493,7 +1488,7 @@ body.desktop #stage {
     width: 220px;
   }
   .compass {
-    width: 300px;
+    height: min(300px, 100%);
   }
   .viewfinder {
     margin: 2% 6%;
