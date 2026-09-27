@@ -1,0 +1,59 @@
+/* Page not found: same warm off-black and yellow as the app, big and simple. */
+:root {
+  color-scheme: dark;
+}
+* {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  min-height: 100dvh;
+  background: radial-gradient(120% 60% at 50% 115%, rgb(255 138 31 / 0.3), transparent 62%), #0c0a09;
+  color: #ffcf4d;
+  font-family: 'Atkinson Hyperlegible Next', 'Noto Sans Arabic', system-ui, sans-serif;
+}
+main {
+  min-height: 100dvh;
+  display: grid;
+  align-content: end;
+  justify-items: start;
+  gap: 18px;
+  padding: 24px 24px calc(48px + env(safe-area-inset-bottom));
+  max-width: 640px;
+}
+.icon img {
+  display: block;
+  border-radius: 30%;
+}
+h1 {
+  margin: 0;
+  font-size: clamp(28pt, 8vw, 44pt);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  text-wrap: balance;
+}
+p {
+  margin: 0;
+  font-size: 20pt;
+  font-weight: 700;
+  color: #e6d3a3;
+}
+.go {
+  margin-top: 12px;
+  padding: 16px 26px;
+  border-radius: 999px;
+  background: #ffcf4d;
+  color: #0c0a09;
+  font-size: 16pt;
+  font-weight: 800;
+  text-decoration: none;
+}
+.go:focus-visible {
+  outline: 4px solid #ffcf4d;
+  outline-offset: 4px;
+}
+.go:active {
+  transform: scale(0.97);
+}
