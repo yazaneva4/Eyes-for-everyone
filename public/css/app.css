@@ -490,10 +490,11 @@ body[data-state='thinking'] .orb3d {
   opacity: 0.8;
   left: 50%;
   top: 50%;
-  font-size: 16pt;
+  /* Everything on the dial scales with it, so a small dial (long message on a phone) stays tidy */
+  font-size: clamp(9pt, 8.8cqmin, 16pt);
   font-weight: 800;
   line-height: 1;
-  --r: calc(50cqmin - 18px); /* on the rim */
+  --r: calc(50cqmin - 7.5cqmin); /* on the rim */
   transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--r) * -1)) rotate(calc(var(--a) * -1));
   font-family: 'Atkinson Hyperlegible Next', system-ui, sans-serif;
 }
@@ -514,13 +515,14 @@ body[data-state='thinking'] .orb3d {
   position: absolute;
   left: 50%;
   top: 50%;
-  font-size: 34px;
-  --r: calc(50cqmin - 46px); /* just inside the rim, where the arrow points */
+  --m: clamp(24px, 22.5cqmin, 54px); /* badge size */
+  font-size: calc(var(--m) * 0.63);
+  --r: calc(50cqmin - var(--m) * 0.85); /* just inside the rim, where the arrow points */
   transform: translate(-50%, -50%) rotate(var(--target, 0deg)) translateY(calc(var(--r) * -1)) rotate(calc(var(--target, 0deg) * -1 + var(--heading, 0deg)));
   display: grid;
   place-items: center;
-  width: 54px;
-  height: 54px;
+  width: var(--m);
+  height: var(--m);
   border-radius: 50%;
   background: var(--fg);
   color: var(--bg);
@@ -538,7 +540,7 @@ body[data-running='qibla'] .compass .qibla-mark {
   display: grid;
   justify-items: center;
   align-items: start;
-  font-size: min(13vmin, 58px);
+  font-size: min(24cqmin, 58px);
   color: var(--fg);
   transform: rotate(var(--turn, 0deg));
   transition: opacity 0.3s;
