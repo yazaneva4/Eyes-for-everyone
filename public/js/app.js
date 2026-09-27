@@ -433,13 +433,15 @@ function bindGestures() {
   });
   el.modebar.addEventListener('click', (e) => {
     const b = e.target.closest('[data-mode]');
-    if (!b || b.dataset.mode === mode) return;
+    if (!b) return;
+    // On the start screen any mode button starts the app, including the one already selected.
     if (state === 'start') {
       mode = b.dataset.mode;
       settings.mode = mode;
       save();
       return begin();
     }
+    if (b.dataset.mode === mode) return;
     selectMode(b.dataset.mode);
   });
   el.fileInput.addEventListener('change', () => {
