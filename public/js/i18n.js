@@ -7,7 +7,7 @@ export const RTL = { ar: true };
 const STRINGS = {
   en: {
     appName: 'Eyes for Everyone',
-    status: { start: 'START', ready: 'TAP', listening: 'LISTENING', thinking: 'THINKING', answer: 'ANSWER', settings: 'SETTINGS' },
+    status: { start: 'Start', ready: 'Tap', listening: 'Listening', thinking: 'Thinking', answer: 'Answer', settings: 'Settings' },
     tapToStart: 'Tap anywhere to start.',
     srModeButton: 'Screen reader mode',
     start: 'Start',

@@ -69,7 +69,7 @@ export function applyLook() {
   root.dataset.theme = settings.theme;
   root.style.setProperty('--text-size', `${settings.textPt}pt`);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.content = settings.theme === 'light' ? '#ffffff' : '#000000';
+  if (meta) meta.content = settings.theme === 'light' ? '#faf9f7' : '#0c0a09';
 }
 
 // Moves to the next value in a list. Returns false when already at the end.

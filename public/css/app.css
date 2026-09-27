@@ -1,4 +1,4 @@
-/* Eyes for Everyone — a camera app in liquid glass, tuned for low vision.
+/* Eyes for Everyone: a camera app in liquid glass (a web approximation of Apple's material), tuned for low vision.
    Every panel that holds text is at least 86% opaque, so contrast stays
    above 7:1 whatever the camera shows behind it. */
 
@@ -16,19 +16,17 @@
 }
 
 :root {
-  --fg: #ffe14d; /* yellow on black ≈ 15:1 */
-  --bg: #000;
-  --tint: 12 12 14; /* glass colour; how see-through it is (--ga) is set live by glass.js */
+  --fg: #ffcf4d; /* warm yellow on warm off-black ≈ 13:1 */
+  --bg: #0c0a09;
+  --accent: #ff8a1f; /* the one accent: the orb, the thinking edge, the Kaaba glow */
+  --tint: 20 16 13; /* glass colour; how see-through it is (--ga) is set live by glass.js */
   --glass: rgb(var(--tint) / 0.86);
   --rim-hi: rgb(255 255 255 / 0.62);
   --rim-lo: rgb(255 255 255 / 0.16);
   --glass-shine: rgb(255 255 255 / 0.09);
   --spring: cubic-bezier(0.2, 0.8, 0.2, 1);
-  --shadow: rgba(0, 0, 0, 0.55);
-  --veil: rgba(0, 0, 0, 0.2);
-  --g2: #ff5fa2;
-  --g3: #7c8cff;
-  --g4: #3ee0c0;
+  --shadow: rgb(18 8 0 / 0.6); /* shadows carry the warm hue of the page */
+  --veil: rgb(12 10 9 / 0.25);
   --level: 0;
   --text-size: 24pt;
   --gap: 16px;
@@ -40,21 +38,19 @@
   color-scheme: dark;
 }
 :root[data-theme='white'] {
-  --fg: #ffffff; /* ≈ 19:1 */
+  --fg: #f7f4ef; /* ≈ 17:1 */
 }
 :root[data-theme='light'] {
-  --fg: #000000; /* ≈ 18:1 */
-  --bg: #ffffff;
-  --tint: 255 255 255;
+  --fg: #1c1917; /* ≈ 16:1 */
+  --bg: #faf9f7;
+  --accent: #d9590b;
+  --tint: 252 250 247;
   --glass: rgb(var(--tint) / 0.9);
   --rim-hi: rgb(255 255 255 / 0.95);
   --rim-lo: rgb(0 0 0 / 0.14);
   --glass-shine: rgb(255 255 255 / 0.55);
-  --shadow: rgba(0, 0, 0, 0.2);
-  --veil: rgba(255, 255, 255, 0.12);
-  --g2: #e0306f;
-  --g3: #4052e6;
-  --g4: #0a9e84;
+  --shadow: rgb(60 30 10 / 0.18);
+  --veil: rgb(250 249 247 / 0.12);
   color-scheme: light;
 }
 
@@ -228,42 +224,51 @@ body[data-photo='on'] #photo {
   inset: 0;
   background: linear-gradient(to bottom, var(--veil), transparent 30%, transparent 55%, var(--veil));
 }
+/* Behind everything: one warm light low on the screen (like a lamp below the frame), a faint
+   cooler light from above, and film grain so the dark never looks flat or digital. */
+.aurora {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(120% 60% at 50% 115%, rgb(255 138 31 / 0.34), transparent 62%),
+    radial-gradient(90% 50% at 15% -10%, rgb(255 236 214 / 0.07), transparent 60%);
+}
 .aurora span {
   position: absolute;
-  width: 75vmax;
-  height: 75vmax;
+  left: 50%;
+  bottom: -30vmax;
+  width: 80vmax;
+  height: 60vmax;
+  margin-left: -40vmax;
   border-radius: 50%;
-  filter: blur(80px);
-  opacity: 0.5;
-  animation: drift 20s ease-in-out infinite alternate;
+  background: rgb(255 120 20 / 0.22);
+  filter: blur(90px);
+  animation: ember 14s ease-in-out infinite alternate;
 }
-.aurora span:nth-child(1) {
-  background: #3348c8;
-  top: -30vmax;
-  left: -25vmax;
+.aurora span + span {
+  display: none;
 }
-.aurora span:nth-child(2) {
-  background: #b0205a;
-  bottom: -35vmax;
-  right: -30vmax;
-  animation-delay: -7s;
-}
-.aurora span:nth-child(3) {
-  background: #d99a00;
-  top: 35%;
-  left: 25%;
-  width: 45vmax;
-  height: 45vmax;
-  opacity: 0.35;
-  animation-delay: -13s;
+:root[data-theme='light'] .aurora {
+  background: radial-gradient(120% 60% at 50% 115%, rgb(255 150 60 / 0.18), transparent 62%);
 }
 :root[data-theme='light'] .aurora span {
-  opacity: 0.28;
+  opacity: 0.35;
 }
-@keyframes drift {
+@keyframes ember {
   to {
-    transform: translate(14vmax, 9vmax) scale(1.2);
+    transform: translateY(-4vmax) scale(1.12);
+    opacity: 0.75;
   }
+}
+/* Grain: fixed and click-through, so it costs nothing while things move */
+#scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.09;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
 
 #flash {
@@ -294,7 +299,7 @@ body[data-photo='on'] #photo {
   padding: 5px;
   opacity: 0;
   transition: opacity 0.5s ease;
-  background: conic-gradient(from var(--angle), var(--fg), var(--g2), var(--g3), var(--g4), var(--fg));
+  background: conic-gradient(from var(--angle), var(--fg), var(--accent), #fff1dc, var(--accent), var(--fg));
   -webkit-mask:
     linear-gradient(#000 0 0) content-box,
     linear-gradient(#000 0 0);
@@ -352,7 +357,7 @@ body[data-state='start']:not(.sr) .hud {
   border-radius: 999px;
   font-size: clamp(15pt, 4.6vw, 20pt);
   line-height: 1.1;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
   text-align: center;
   white-space: nowrap;
   transition:
@@ -376,8 +381,7 @@ body[data-state='start'] .pill {
   width: 0.5em;
   height: 0.5em;
   border-radius: 50%;
-  background: var(--fg);
-  box-shadow: 0 0 0.5em var(--fg);
+  background: var(--accent);
 }
 body.recording .orb {
   animation: pulse 1s ease-in-out infinite;
@@ -577,26 +581,22 @@ body[data-facing='yes'] .compass .qibla-mark {
   text-align: center;
 }
 .logo {
-  width: min(34vmin, 150px);
+  width: min(30vmin, 128px);
   aspect-ratio: 1;
-  border-radius: 50%;
+  border-radius: 30%; /* a squircle, like an app icon */
   display: grid;
   place-items: center;
-  font-size: min(16vmin, 72px);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 0 60px -10px var(--fg),
-    0 30px 70px -20px var(--shadow);
+  font-size: min(14vmin, 60px);
 }
 .logo .ic {
   stroke-width: 1.8;
 }
 .wordmark {
-  font-size: clamp(24pt, 7vw, 40pt);
-  line-height: 1.05;
-  letter-spacing: -0.01em;
-  max-width: 11ch;
-  text-shadow: 0 2px 24px var(--bg);
+  font-size: clamp(28pt, 8.5vw, 44pt);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  max-width: 10ch;
+  text-wrap: balance;
 }
 
 /* Ready: viewfinder corners */
@@ -914,6 +914,7 @@ body[data-sheet='peek'] #message > span {
   text-align: start;
   overflow-wrap: break-word;
   hyphens: manual;
+  text-wrap: pretty;
 }
 #message > span {
   display: block;
@@ -1096,10 +1097,9 @@ body[data-state='settings'] .dock {
   background: transparent;
   color: var(--fg);
   opacity: 0.8;
-  font-size: 12.5pt;
+  font-size: 14pt;
   font-weight: 800;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  letter-spacing: -0.005em;
   padding: 9px 17px;
   scroll-snap-align: center;
   border-radius: 999px;
@@ -1373,8 +1373,8 @@ body[data-state='start']:not(.sr) .text-link {
   padding: 24px;
   display: grid;
   place-items: center;
-  background: #000;
-  color: #ffe14d;
+  background: #0c0a09;
+  color: #ffcf4d;
   font: 800 32pt system-ui, sans-serif;
   text-align: center;
 }

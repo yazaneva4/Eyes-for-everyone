@@ -98,17 +98,17 @@ function samplesUnder(rect, data) {
 
 // Colours of the soft moving background, used when there is no camera or photo.
 const AURORA = {
+  // What the background can look like behind a panel (warm ember light over off-black, plus grain).
   dark: [
-    [70, 80, 170],
-    [150, 40, 95],
-    [120, 90, 25],
-    [0, 0, 0],
+    [120, 60, 18],
+    [70, 38, 16],
+    [28, 22, 18],
+    [12, 10, 9],
   ],
   light: [
-    [210, 215, 240],
-    [240, 205, 220],
-    [245, 230, 195],
-    [255, 255, 255],
+    [250, 225, 200],
+    [250, 240, 228],
+    [250, 249, 247],
   ],
 };
 
@@ -116,7 +116,7 @@ export function refreshGlass() {
   if (!src.body) return;
   const dark = document.documentElement.dataset.theme !== 'light';
   const fg = cssColor('--fg');
-  const tint = dark ? [12, 12, 14] : [255, 255, 255];
+  const tint = dark ? [20, 16, 13] : [252, 250, 247];
   const hasMedia = drawBackdrop();
   const data = hasMedia ? ctx.getImageData(0, 0, canvas.width, canvas.height).data : null;
   for (const panel of document.querySelectorAll('.glass')) {
