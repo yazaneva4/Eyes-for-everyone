@@ -82,6 +82,8 @@ export async function startQibla(onUpdate, demo = false) {
     return { stop: () => clearInterval(timer), target, distanceKm, compass: true };
   }
   const granted = !ask || (await ask.catch(() => 'denied')) === 'granted';
+  // Listen even if permission was refused: some browsers still send readings, and if none arrive
+  // the app can say that motion access is blocked instead of claiming there is no compass.
   const absolute = 'ondeviceorientationabsolute' in window;
   const type = absolute ? 'deviceorientationabsolute' : 'deviceorientation';
   let smooth = null;
@@ -95,10 +97,10 @@ export async function startQibla(onUpdate, demo = false) {
     got = true;
     onUpdate({ heading: smooth, turn: turnBy(target, smooth), accuracy: e.webkitCompassAccuracy ?? null });
   };
-  if (granted) addEventListener(type, onEvent);
+  addEventListener(type, onEvent);
   const stop = () => removeEventListener(type, onEvent);
   // No readings within 3 seconds: no usable compass (most laptops).
-  if (granted) await new Promise((r) => setTimeout(r, 3000));
+  await new Promise((r) => setTimeout(r, 3000));
   if (!got) stop();
-  return { stop, target, distanceKm, compass: got };
+  return { stop, target, distanceKm, compass: got, motionBlocked: !got && !granted };
 }

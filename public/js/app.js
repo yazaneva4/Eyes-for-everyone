@@ -123,10 +123,14 @@ function fit(text, maxPt = settings.textPt, live = false) {
   const span = setSpan(text, live);
   let pt = maxPt;
   el.message.style.fontSize = `${pt}pt`;
+  // While measuring, a word too long for its line counts as not fitting, so the text gets a little
+  // smaller instead of splitting a word (long Malayalam words). Only at the smallest size may it split.
+  el.message.style.overflowWrap = 'normal';
   while (overflows(span) && pt > MIN_PT) {
     pt -= 2;
     el.message.style.fontSize = `${pt}pt`;
   }
+  el.message.style.overflowWrap = '';
   return overflows(span) ? 0 : pt;
 }
 
@@ -1114,10 +1118,11 @@ async function runQibla(my) {
   facts = { km: num(q.distanceKm), deg: num(q.target), dir: t(`compass.${compassPoint(q.target)}`) };
   if (!q.compass) {
     // Laptop or a phone without a compass: it cannot know which way you face,
-    // so no compass is drawn — only the facts, and where to use it instead.
+    // so no compass is drawn, only the facts, and where to use it instead.
     qibla = null;
     el.body.dataset.running = 'qibla-none';
-    qiblaSay = t('qiblaNoCompass', facts);
+    // Motion access refused: say how to allow it. A phone without a compass is not told to "use your phone".
+    qiblaSay = t(DESKTOP ? 'qiblaNoCompass' : q.motionBlocked ? 'qiblaNoMotion' : 'qiblaNoCompassPhone', facts);
     return say(qiblaSay);
   }
   qibla = q;
