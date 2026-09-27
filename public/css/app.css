@@ -557,7 +557,30 @@ body[data-facing='yes'] .compass .needle {
   filter: drop-shadow(0 0 18px var(--fg));
 }
 
-/* No compass on this device: do not draw one (it could not point the right way) */
+/* No compass: the dial becomes a map (north at the top) with the arrow at the true Qibla angle.
+   It does not turn with the device, so it says "North up" where the facing marker would be. */
+body[data-running='qibla-map'] .compass .qibla-mark,
+body[data-running='qibla-map'] .compass .needle {
+  opacity: 1;
+}
+body[data-running='qibla-map'] .compass .pointer {
+  visibility: hidden;
+}
+.compass .map-note {
+  position: absolute;
+  top: -26px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12pt;
+  font-weight: 800;
+  white-space: nowrap;
+  letter-spacing: -0.005em;
+  opacity: 0;
+}
+body[data-running='qibla-map'] .compass .map-note {
+  opacity: 0.9;
+}
+/* No location at all: there is nothing to point at, so no dial */
 body[data-running='qibla-none'] .compass {
   display: none;
 }

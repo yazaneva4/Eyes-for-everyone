@@ -44,6 +44,7 @@ const el = {
   settings: $('settings'),
   wordmark: $('wordmark'),
   tagline: $('tagline'),
+  mapNote: $('map-note'),
   liveStatus: $('live-status'),
   liveMessage: $('live-message'),
   sheet: document.querySelector('.sheet'),
@@ -208,6 +209,7 @@ function updateLabels() {
   el.stage.setAttribute('aria-label', prompt || t('appName'));
   el.wordmark.textContent = t('appName');
   el.tagline.textContent = t('tagline');
+  el.mapNote.textContent = t('mapNote');
   $('drop-text').textContent = t('dropHere');
   el.btnSettings.setAttribute('aria-label', t('sr.settings'));
   el.btnHelp.setAttribute('aria-label', t('sr.help'));
@@ -1122,7 +1124,8 @@ async function runQibla(my) {
     el.body.style.setProperty('--target', `${target.toFixed(1)}deg`);
     facts = placeFacts(place.target, place.distanceKm, place.accuracy);
     qiblaSay = t(noCompassKey || 'qiblaIntro', facts);
-    if (el.body.dataset.running !== 'qibla-none') return;
+    if (el.body.dataset.running !== 'qibla-map') return;
+    el.body.style.setProperty('--turn', `${target.toFixed(1)}deg`); // the map arrow follows you too
     // The screen follows every move; the voice speaks again only after a real change (1 km or 1 degree).
     if (Math.abs(place.distanceKm - spokenAt.km) >= 1 || Math.abs(((place.target - spokenAt.deg + 540) % 360) - 180) >= 1) {
       spokenAt = { km: place.distanceKm, deg: place.target };
@@ -1154,7 +1157,10 @@ async function runQibla(my) {
     // Laptop or a phone without a compass: it cannot know which way you face,
     // so no compass is drawn, only the facts, and where to use it instead.
     qibla = q; // keeps following your location, so the figures update when you move
-    el.body.dataset.running = 'qibla-none';
+    // A map dial: north at the top, the arrow and the Kaaba at the real angle from your location.
+    el.body.dataset.running = 'qibla-map';
+    el.body.style.setProperty('--heading', '0deg');
+    el.body.style.setProperty('--turn', `${q.target.toFixed(1)}deg`);
     // Motion access refused: say how to allow it. A phone without a compass is not told to "use your phone".
     noCompassKey = DESKTOP ? 'qiblaNoCompass' : q.motionBlocked ? 'qiblaNoMotion' : 'qiblaNoCompassPhone';
     qiblaSay = t(noCompassKey, facts);
