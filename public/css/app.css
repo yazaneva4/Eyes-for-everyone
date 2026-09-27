@@ -270,6 +270,11 @@ body[data-photo='on'] #photo {
   mix-blend-mode: overlay;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
 }
+/* Never put grain over the camera or a photo: that is the picture people need to see clearly */
+body[data-camera='on']:not([data-state='start']) #scene::after,
+body[data-photo='on'] #scene::after {
+  opacity: 0;
+}
 
 #flash {
   position: fixed;
@@ -317,9 +322,10 @@ body[data-state='thinking'] .edge {
   opacity: 1;
   background: conic-gradient(from var(--angle), #ffe2b8, #ff8a1f, #fff4e0, #e0520a, #ffe2b8);
 }
+/* Listening: the same orange light as the orb, brighter as you speak louder */
 body.recording .edge {
-  background: var(--fg);
-  opacity: calc(0.45 + var(--level) * 0.55);
+  background: conic-gradient(from var(--angle), var(--accent), #ffd9a8, var(--accent), #e8590c, var(--accent));
+  opacity: calc(0.35 + var(--level) * 0.65);
   transition: opacity 0.08s linear;
 }
 @keyframes turn {
