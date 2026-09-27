@@ -500,6 +500,12 @@ function cameraProblem(e) {
     { NotAllowedError: 'camBlocked', SecurityError: 'camBlocked', NotReadableError: 'camBusy', AbortError: 'camBusy', NotFoundError: 'camNone', OverconstrainedError: 'camNone', NoAnswer: 'camNoAnswer', NotSupported: 'camUnsupported' }[e?.name] ||
     'camBlocked';
   el.body.dataset.nocam = 'yes';
+  // Phones have no "System Settings, Privacy and Security" step: give them the phone wording.
+  if (key === 'camBlocked' && !DESKTOP) {
+    el.body.dataset.camera = 'off';
+    sounds.error();
+    return 'camBlockedPhone';
+  }
   el.body.dataset.camera = 'off';
   sounds.error();
   return key;
