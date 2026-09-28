@@ -340,7 +340,8 @@ export const englishStrings = () => STRINGS.en;
 
 export function setLang(code) {
   current = STRINGS[code] ? code : 'en';
-  document.documentElement.lang = current;
+  // Screen readers pick their voice from this: the real language code, also for a typed-in language.
+  document.documentElement.lang = LOCALES[current] || current;
   document.documentElement.dir = RTL[current] ? 'rtl' : 'ltr';
 }
 
