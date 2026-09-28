@@ -5,7 +5,7 @@
 // Switch with the two tabs at the bottom, a sideways swipe, or ← / →.
 // Also: long-press repeats · hold 3 s opens settings · swipe down or O opens a picture ·
 // drag the answer sheet to resize it · laptop: Space = tap, drop or paste a picture.
-import { t, setLang, LANG_ORDER, LOCALES } from './i18n.js';
+import { t, setLang, LANG_ORDER, LOCALES, useCustomLang, englishStrings } from './i18n.js';
 import { settings, save, applyLook, RATES, SIZES, THEMES, step } from './settings.js';
 import { sounds, vibrate } from './sounds.js';
 import { speak, speakStream, stopSpeaking, unlockVoice, enableServerVoice, splitSentences, preload, voiceLevel, voicePlaying } from './voice.js';
@@ -64,6 +64,7 @@ let prompting = false;
 let blurStrikes = 0;
 let abort = null;
 let returnState = 'ready';
+let customOpen = false; // the "type any language" row is showing
 let pendingPicture = null; // a picture dropped on the page before the first tap
 let qibla = null; // the running compass
 let qiblaSay = ''; // what a tap in Qibla says right now
@@ -808,7 +809,7 @@ async function ask(question, my) {
     const r = await fetch('/api/ask', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ image: photo.base64, mime: 'image/jpeg', question: q, lang: settings.lang, history, stream: true }),
+      body: JSON.stringify({ image: photo.base64, mime: 'image/jpeg', question: q, lang: settings.lang, ...(settings.lang === 'x' ? { langName: settings.custom?.name } : {}), history, stream: true }),
       signal: ctl.signal,
     });
     if (!r.ok || !r.body) throw new Error(`ask ${r.status}`);
@@ -1027,7 +1028,7 @@ function changeLanguage() {
 
 // ---------- Qibla: starts by itself, updates live (location stays on the phone) ----------
 
-const num = (n) => new Intl.NumberFormat(settings.lang === 'ar' ? 'ar-SA' : settings.lang === 'ml' ? 'ml-IN' : 'en-US').format(Math.round(n));
+const num = (n) => new Intl.NumberFormat(LOCALES[settings.lang] || 'en-US').format(Math.round(n));
 
 function stopQibla() {
   qibla?.stop();
@@ -1182,6 +1183,15 @@ function renderSettings() {
   $('lbl-theme').textContent = t('settings.colours');
   $('lbl-sr').textContent = t('settings.reader');
   for (const b of el.settings.querySelectorAll('.seg button')) b.setAttribute('aria-checked', b.dataset.v === settings.lang ? 'true' : 'false');
+  // The fourth button shows the typed-in language in its own script once it is set up.
+  const x = $('lang-x');
+  x.textContent = settings.custom?.native || settings.custom?.name || t('settings.other');
+  x.setAttribute('aria-label', settings.custom ? `${t('settings.other')}: ${settings.custom.name}` : t('settings.other'));
+  if (settings.custom?.code) x.lang = settings.custom.code;
+  $('custom-row').hidden = !(customOpen || settings.lang === 'x');
+  $('lbl-custom').textContent = t('settings.customLabel');
+  $('custom-go').textContent = t('settings.customUse');
+  if (!$('custom-lang').value && settings.custom) $('custom-lang').value = settings.custom.name;
   for (const b of el.settings.querySelectorAll('.sw')) {
     b.setAttribute('aria-checked', b.dataset.v === settings.theme ? 'true' : 'false');
     b.setAttribute('aria-label', t(`themeNames.${b.dataset.v}`));
@@ -1207,6 +1217,7 @@ function openSettings() {
 
 function closeSettings() {
   el.settings.hidden = true;
+  customOpen = false;
   applyLook();
   if (returnState === 'start') return showStart();
   if (returnState === 'answer' && photo) {
@@ -1231,12 +1242,60 @@ function bindSettings() {
   };
   el.settings.querySelector('.seg').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
-    if (!b || b.dataset.v === settings.lang) return;
-    settings.lang = b.dataset.v;
+    if (!b) return;
+    if (b.dataset.v === 'x') {
+      customOpen = true;
+      // Already set up: switch to it. Otherwise ask which language, and wait for "Use".
+      if (settings.custom && settings.lang !== 'x') return useLang('x');
+      renderSettings();
+      $('custom-lang').focus();
+      if (!settings.custom) say(t('settings.customAsk'), { display: false });
+      return;
+    }
+    if (b.dataset.v === settings.lang) return;
+    customOpen = false;
+    useLang(b.dataset.v);
+  });
+  function useLang(code) {
+    settings.lang = code;
     settings.langChosen = true;
     setLang(settings.lang);
     preloadPrompts();
     changed(t('languageName'));
+  }
+  // Any other language: the AI translates the app's words once; they are kept on this phone.
+  const customName = /^[\p{L}\p{M}][\p{L}\p{M} ()'.-]{1,39}$/u;
+  async function setUpCustom() {
+    const name = $('custom-lang').value.trim().replace(/\s+/g, ' ');
+    if (!customName.test(name)) return say(t('settings.customBad'), { display: false });
+    if (settings.custom?.name.toLowerCase() === name.toLowerCase()) return useLang('x');
+    const go = $('custom-go');
+    go.disabled = true;
+    say(t('settings.translating', { name }), { display: false });
+    try {
+      const r = await fetch('/api/translate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ language: name, strings: englishStrings() }),
+      });
+      if (!r.ok) throw new Error(`translate ${r.status}`);
+      const out = await r.json();
+      const custom = { name, native: String(out.meta?.native || name).slice(0, 40), code: out.meta?.code, rtl: !!out.meta?.rtl, strings: out.strings };
+      if (!useCustomLang(custom)) throw new Error('bad translation');
+      settings.custom = custom;
+      useLang('x');
+    } catch {
+      say(t('settings.customFail', { name }), { display: false });
+    } finally {
+      go.disabled = false;
+    }
+  }
+  $('custom-go').addEventListener('click', setUpCustom);
+  $('custom-lang').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      setUpCustom();
+    }
   });
   el.settings.querySelector('.swatches').addEventListener('click', (e) => {
     const b = e.target.closest('[data-v]');
@@ -1307,7 +1366,7 @@ async function checkServer() {
   try {
     const h = await (await fetch('/api/health')).json();
     useServerStt(h.transcribe);
-    enableServerVoice(h.voice === 'elevenlabs' ? 'always' : false);
+    enableServerVoice(h.voice ? 'always' : false);
     preloadPrompts();
   } catch {
     useServerStt(false);
@@ -1331,6 +1390,8 @@ function showStart() {
 // ---------- boot ----------
 
 if (new URLSearchParams(location.search).get('sr') === '1') settings.srMode = true;
+// A typed-in language set up earlier on this phone.
+if (!(settings.custom && useCustomLang(settings.custom)) && settings.lang === 'x') settings.lang = 'en';
 setLang(settings.lang);
 applyLook();
 showMode();

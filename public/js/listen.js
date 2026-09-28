@@ -2,6 +2,7 @@
 // Main path: MediaRecorder → /api/transcribe (works well for Arabic and Malayalam).
 // Fallback: the browser's own speech recognition when the server cannot transcribe.
 import { LOCALES } from './i18n.js';
+import { settings } from './settings.js';
 import { speakerMode } from './voice.js';
 
 const DEBUG = new URLSearchParams(location.search).has('debug');
@@ -155,7 +156,7 @@ async function recordForServer(lang, mime, onAutoStop) {
       const r = await fetch('/api/transcribe', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ audio: await blobToBase64(blob), mime: blob.type, lang }),
+        body: JSON.stringify({ audio: await blobToBase64(blob), mime: blob.type, lang, ...(lang === 'x' ? { langName: settings.custom?.name } : {}) }),
         signal,
       });
       if (!r.ok) throw new Error('stt-failed');

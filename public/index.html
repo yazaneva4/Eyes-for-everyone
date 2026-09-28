@@ -128,7 +128,14 @@
               <button type="button" role="radio" data-v="en" lang="en">EN</button>
               <button type="button" role="radio" data-v="ar" lang="ar">عربي</button>
               <button type="button" role="radio" data-v="ml" lang="ml">മല</button>
+              <!-- Any other language, typed in; shows that language's own name once set up -->
+              <button type="button" role="radio" data-v="x" id="lang-x">Other</button>
             </div>
+          </div>
+          <div class="set-row custom-row" id="custom-row" hidden>
+            <label class="lbl" id="lbl-custom" for="custom-lang">Type any language</label>
+            <input id="custom-lang" type="text" autocomplete="off" autocapitalize="words" spellcheck="false" maxlength="40" />
+            <button id="custom-go" class="done-btn" type="button">Use</button>
           </div>
           <div class="set-row">
             <svg class="ic" aria-hidden="true"><use href="#i-text" /></svg>

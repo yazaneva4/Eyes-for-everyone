@@ -151,9 +151,9 @@ export function available() {
     ask: mock || !!(k.gemini || k.openrouter),
     elevenlabs: !!k.elevenlabs,
     transcribe: !!(k.elevenlabs || k.gemini),
-    speak: !!k.elevenlabs,
-    // ElevenLabs is the app's voice; without it the phone's own voice is used.
-    voice: k.elevenlabs ? 'elevenlabs' : null,
+    speak: !!(k.elevenlabs || k.gemini),
+    // ElevenLabs is the app's voice, Google's (Gemini) the backup; without either, the phone's own.
+    voice: k.elevenlabs ? 'elevenlabs' : k.gemini ? 'gemini' : null,
     mock,
   };
 }

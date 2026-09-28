@@ -1344,6 +1344,40 @@ body[data-state='start']:not(.sr) .text-link {
 .swatches {
   gap: 10px;
 }
+/* Any other language: type its name, then "Use" */
+.custom-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'lbl lbl'
+    'in go';
+}
+.custom-row[hidden] {
+  display: none;
+}
+.custom-row input {
+  grid-area: in;
+  min-width: 0;
+  font: inherit;
+  font-size: 15pt;
+  font-weight: 700;
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: 2px solid color-mix(in srgb, var(--fg) 50%, transparent);
+  background: color-mix(in srgb, var(--fg) 8%, transparent);
+  color: var(--fg);
+  -webkit-user-select: text;
+  user-select: text;
+}
+.custom-row input:focus-visible {
+  outline: 3px solid var(--fg);
+  outline-offset: 2px;
+}
+.custom-row .done-btn {
+  grid-area: go;
+}
+.custom-row .done-btn[disabled] {
+  opacity: 0.6;
+}
 /* Phones: the language switch gets its own full-width line, like the sliders,
    so it never covers the word "Language" */
 @media (max-width: 480px) {

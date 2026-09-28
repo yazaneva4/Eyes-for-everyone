@@ -59,9 +59,10 @@ const ROBOTIC = /fred|albert|zarvox|trinoids|whisper|wobble|bad news|good news|b
 const NATURAL = [/google/i, /premium/i, /enhanced/i, /natural/i, /neural/i, /siri/i, /samantha|ava|allison|susan|zoe|evan|nathan|karen|daniel|moira|tessa/i, /microsoft .*online/i];
 
 function voiceFor(lang) {
-  const locale = LOCALES[lang].toLowerCase();
+  const locale = (LOCALES[lang] || 'en-US').toLowerCase();
+  const family = locale.split('-')[0]; // any Urdu voice for 'ur', any English voice for 'en-US'
   const norm = (v) => v.lang.replace('_', '-').toLowerCase();
-  const matches = voices.filter((v) => norm(v).startsWith(lang) && !ROBOTIC.test(v.name));
+  const matches = voices.filter((v) => norm(v).split('-')[0] === family && !ROBOTIC.test(v.name));
   if (!matches.length) return null;
   const score = (v) => {
     const i = NATURAL.findIndex((re) => re.test(v.name));
@@ -232,13 +233,19 @@ function limited(job, urgent) {
 
 async function fetchVoice(text, lang, speed) {
   for (let attempt = 0; ; attempt++) {
-    if (Date.now() < serverRestUntil) throw new Error('tts');
+    // Resting after "no credits": only languages the phone cannot speak itself still ask the server.
+    if (Date.now() < serverRestUntil && voiceFor(lang)) throw new Error('tts');
     const r = await fetch('/api/speak', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, lang, speed }),
+      body: JSON.stringify({ text, lang, speed, ...(lang === 'x' ? { langName: settings.custom?.name } : {}) }),
     });
-    if (r.ok) return r.arrayBuffer();
+    if (r.ok) {
+      const data = await r.arrayBuffer();
+      data.audioType = r.headers.get('content-type') || 'audio/mpeg'; // MP3 from ElevenLabs, WAV from Google
+      voiceLog(`voice: ${r.headers.get('x-voice') || 'server'}`);
+      return data;
+    }
     voiceLog(`ElevenLabs answered ${r.status} for: ${text.slice(0, 30)}`);
     if (r.status === 429 || r.status === 503) {
       serverRestUntil = Date.now() + 5 * 60 * 1000;
@@ -265,11 +272,13 @@ function fetchServerAudio(text, lang, urgent = true) {
       const c = audioContext();
       if (!c) throw new Error('no-audio');
       const copy = data.slice(0);
+      const type = data.audioType;
       return new Promise((resolve, reject) =>
         c.decodeAudioData(
           data,
           (buffer) => {
             buffer.mp3 = copy; // for the backup player
+            buffer.audioType = type;
             resolve(buffer);
           },
           (e) => {
@@ -350,7 +359,7 @@ async function playUrl(buffer, my) {
 function playWithPlayer(buffer, my) {
   if (!buffer.mp3) return Promise.resolve(false);
   return new Promise((resolve) => {
-    const url = URL.createObjectURL(new Blob([buffer.mp3], { type: 'audio/mpeg' }));
+    const url = URL.createObjectURL(new Blob([buffer.mp3], { type: buffer.audioType || 'audio/mpeg' }));
     let done = false;
     const finish = (ok) => {
       if (done) return;
@@ -401,7 +410,7 @@ export async function speak(text, { lang = settings.lang, onSentence } = {}) {
   speakerMode(false);
   const my = token;
   const parts = splitSentences(text);
-  const useServer = serverOn() || (serverVoice === 'fallback' && !voiceFor(lang) && Date.now() >= serverRestUntil);
+  const useServer = serverVoice !== false && (serverOn() || !voiceFor(lang)); // no phone voice (often Malayalam): always the server's natural voice
   // Ask the server for every sentence at once so playback has no gaps.
   const urls = useServer ? parts.map((p) => fetchServerAudio(p, lang).catch(() => null)) : [];
   for (let i = 0; i < parts.length; i++) {
@@ -429,7 +438,7 @@ export function speakStream({ lang = settings.lang, onSentence } = {}) {
   stopSpeaking();
   speakerMode(false);
   const my = token;
-  const useServer = serverOn() || (serverVoice === 'fallback' && !voiceFor(lang) && Date.now() >= serverRestUntil);
+  const useServer = serverVoice !== false && (serverOn() || !voiceFor(lang)); // no phone voice (often Malayalam): always the server's natural voice
   const queue = [];
   let buf = '';
   let ended = false;

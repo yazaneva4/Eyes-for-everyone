@@ -41,6 +41,13 @@ const STRINGS = {
     disclaimer: 'This is a helper, not a safety tool.',
     defaultQuestion: 'Describe what you see.',
     settings: {
+      other: 'Other',
+      customLabel: 'Type any language',
+      customUse: 'Use',
+      customAsk: 'Type the language you want, then press Use.',
+      translating: 'Setting up {name}. This takes a few seconds.',
+      customFail: 'I could not set up {name}. Check the spelling and try again.',
+      customBad: 'Please type a language name, like French or Urdu.',
       title: 'Settings',
       language: 'Language',
       textSize: 'Text size',
@@ -134,6 +141,13 @@ const STRINGS = {
     disclaimer: 'هذا مساعد، وليس أداة للسلامة.',
     defaultQuestion: 'صف ما تراه.',
     settings: {
+      other: 'أخرى',
+      customLabel: 'اكتب أي لغة',
+      customUse: 'استخدم',
+      customAsk: 'اكتب اللغة التي تريدها، ثم اضغط استخدم.',
+      translating: 'جارٍ إعداد {name}. يستغرق ذلك بضع ثوانٍ.',
+      customFail: 'لم أتمكن من إعداد {name}. تحقق من الكتابة وحاول مرة أخرى.',
+      customBad: 'اكتب اسم لغة، مثل الفرنسية أو الأردية.',
       title: 'الإعدادات',
       language: 'اللغة',
       textSize: 'حجم الخط',
@@ -227,6 +241,13 @@ const STRINGS = {
     disclaimer: 'ഇതൊരു സഹായി മാത്രമാണ്, സുരക്ഷാ ഉപകരണമല്ല.',
     defaultQuestion: 'നിങ്ങൾ കാണുന്നത് വിവരിക്കുക.',
     settings: {
+      other: 'മറ്റൊന്ന്',
+      customLabel: 'ഏതെങ്കിലും ഭാഷ ടൈപ്പ് ചെയ്യുക',
+      customUse: 'ഉപയോഗിക്കുക',
+      customAsk: 'നിങ്ങൾക്ക് വേണ്ട ഭാഷ ടൈപ്പ് ചെയ്ത്, ഉപയോഗിക്കുക അമർത്തുക.',
+      translating: '{name} തയ്യാറാക്കുന്നു. കുറച്ച് സെക്കൻഡുകൾ എടുക്കും.',
+      customFail: '{name} തയ്യാറാക്കാൻ കഴിഞ്ഞില്ല. അക്ഷരങ്ങൾ പരിശോധിച്ച് വീണ്ടും ശ്രമിക്കുക.',
+      customBad: 'ഫ്രഞ്ച് അല്ലെങ്കിൽ ഉറുദു പോലെ ഒരു ഭാഷയുടെ പേര് ടൈപ്പ് ചെയ്യുക.',
       title: 'ക്രമീകരണങ്ങൾ',
       language: 'ഭാഷ',
       textSize: 'അക്ഷര വലിപ്പം',
@@ -286,6 +307,36 @@ const STRINGS = {
 };
 
 let current = 'en';
+
+// ---------- a language the user typed in ("x") ----------
+// Its words are the English ones translated once by AI and kept on this phone. Anything missing,
+// or a translation that lost a placeholder like {n}, falls back to English, so nothing breaks.
+const holes = (t) => (String(t).match(/\{\w+\}/g) || []).sort().join();
+function merge(base, over) {
+  if (Array.isArray(base)) return Array.isArray(over) && over.length === base.length ? base.map((b, i) => merge(b, over[i])) : base;
+  if (base && typeof base === 'object') {
+    const out = {};
+    for (const k of Object.keys(base)) out[k] = merge(base[k], over?.[k]);
+    return out;
+  }
+  return typeof over === 'string' && over.trim() && holes(over) === holes(base) ? over : base;
+}
+const tagOk = (tag) => {
+  try {
+    return !!tag && Intl.getCanonicalLocales(tag).length === 1;
+  } catch {
+    return false;
+  }
+};
+export function useCustomLang(custom) {
+  if (!custom?.strings) return false;
+  STRINGS.x = merge(STRINGS.en, custom.strings);
+  LOCALES.x = tagOk(custom.code) ? custom.code : 'en';
+  RTL.x = !!custom.rtl;
+  if (!LANG_ORDER.includes('x')) LANG_ORDER.push('x');
+  return true;
+}
+export const englishStrings = () => STRINGS.en;
 
 export function setLang(code) {
   current = STRINGS[code] ? code : 'en';
