@@ -72,8 +72,14 @@ export async function checkKeys() {
           signal: AbortSignal.timeout(10000),
         });
         last = { status: r.status, hint: hint(r.status), model: gm, tried };
-        if (r.status !== 404) return ['gemini', last];
-        tried[gm] = `404: ${(await readError(r)).slice(0, 160)}`;
+        if (r.status === 200) return ['gemini', last];
+        const why = (await readError(r)).slice(0, 160);
+        if (r.status !== 404) {
+          // Busy or out of quota: say why, and see whether the next model would answer.
+          tried[gm] = `${r.status}: ${why}`;
+          continue;
+        }
+        tried[gm] = `404: ${why}`;
       } catch {}
     }
     return ['gemini', last];
