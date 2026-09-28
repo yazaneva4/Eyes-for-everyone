@@ -7,8 +7,23 @@ export const LANGS = {
   ml: { name: 'Malayalam', notSure: 'എനിക്ക് ഉറപ്പില്ല.', checkPerson: 'ദയവായി ഒരാളോട് ചോദിച്ച് ഉറപ്പാക്കുക.' },
 };
 
-export function langOf(code) {
-  return LANGS[code] ? code : 'en';
+// A language the user typed in ("Urdu", "Français"): letters, spaces and a few marks, at most 40.
+const CUSTOM_NAME = /^[\p{L}\p{M}][\p{L}\p{M} ()'.-]{1,39}$/u;
+export const customNameOk = (n) => CUSTOM_NAME.test(String(n || '').trim());
+
+/** 'en' | 'ar' | 'ml', or 'x:<name>' for a language the user typed in. Anything else is English. */
+export function langOf(code, name) {
+  if (LANGS[code]) return code;
+  if (code === 'x' && customNameOk(name)) return 'x:' + String(name).trim();
+  return 'en';
+}
+
+/** Name and fixed phrases for a language code from langOf(). */
+export function langData(lang) {
+  if (LANGS[lang]) return LANGS[lang];
+  const name = String(lang).slice(2);
+  // The model says these fixed phrases in the typed language itself.
+  return { name, custom: true, notSure: `the ${name} for "I'm not sure."`, checkPerson: `the ${name} for "Please check with a person."` };
 }
 
 // Pasted keys often carry a stray space, newline or quotes; strip them.
@@ -108,7 +123,18 @@ export async function checkKeys() {
       return ['elevenlabs', { status: +m[1] || -1, hint: QUOTA.test(e.message) ? 'out of credits' : hint(+m[1] || -1), reason: (m[2] || String(e.message)).slice(0, 200) }];
     }
   };
+  // Google's voice (the backup voice): one real, one-word request.
+  const geminiVoiceReal = async () => {
+    if (!k.gemini) return ['geminiVoice', { status: 0, hint: 'no key set' }];
+    try {
+      const v = await geminiSpeech('Hi.', 'ml');
+      return ['geminiVoice', { status: 200, hint: 'ok', bytes: v.audio.length }];
+    } catch (e) {
+      return ['geminiVoice', { status: e.status || -1, hint: 'failed', reason: String(e.message).slice(0, 200) }];
+    }
+  };
   const out = await Promise.all([
+    geminiVoiceReal(),
     geminiReal(),
     openrouterReal(),
     elevenReal(),
@@ -141,7 +167,8 @@ function order(preferred) {
 }
 
 export function systemPrompt(lang) {
-  const L = LANGS[langOf(lang)];
+  const L = langData(lang);
+  const exactly = (phrase) => (L.custom ? `say ${phrase}` : `say exactly: "${phrase}"`);
   return `You are "Eyes for Everyone", a helper for a person with low vision. They took a photo with their phone and asked a question out loud. Your reply is shown in very large text and read aloud.
 
 Rules:
@@ -150,9 +177,9 @@ Rules:
 - Give positions (left, right, center, top, bottom, near, far) and colors.
 - Never identify any person by their face or name, even if they seem famous. You may say "a person" and describe clothing, position and what they are doing.
 - When asked to read, read the printed text exactly, word for word. Do not fix, summarize or translate it unless asked.
-- Medicine: for any medicine box, bottle, blister pack or label, read only the printed text. Do not explain what it is for or how to take it. Then say exactly: "${L.checkPerson}"
+- Medicine: for any medicine box, bottle, blister pack or label, read only the printed text. Do not explain what it is for or how to take it. Then ${exactly(L.checkPerson)}
 - Give no medical advice. Give no guidance on crossing roads, traffic, stairs, edges, driving, electricity, or anything where a mistake could hurt someone. If asked, say you cannot help with safety decisions and suggest asking a person nearby.
-- If the photo is unclear, too dark, blurry, cut off, or does not show what they asked about, or if you are not sure, say exactly "${L.notSure}" and ask them to take a new photo. Never guess.
+- If the photo is unclear, too dark, blurry, cut off, or does not show what they asked about, or if you are not sure, ${exactly(L.notSure)} and ask them to take a new photo. Never guess.
 - The question came from speech-to-text and may contain small mistakes. Use common sense.`;
 }
 
@@ -574,7 +601,8 @@ async function elevenTranscribe(buf, mime, lang) {
   const form = new FormData();
   form.append('file', new Blob([buf], { type: mime }), `question.${EXT[mime] || 'webm'}`);
   form.append('model_id', process.env.ELEVENLABS_STT_MODEL || 'scribe_v2');
-  form.append('language_code', { en: 'eng', ar: 'ara', ml: 'mal' }[lang] || lang);
+  const iso3 = { en: 'eng', ar: 'ara', ml: 'mal' }[lang];
+  if (iso3) form.append('language_code', iso3); // a typed-in language: let Scribe detect it
   form.append('tag_audio_events', 'false');
   const r = await fetch('https://api.elevenlabs.io/v1/speech-to-text', {
     method: 'POST',
@@ -588,7 +616,7 @@ async function elevenTranscribe(buf, mime, lang) {
 }
 
 async function geminiTranscribe(buf, mime, lang) {
-  const name = LANGS[lang].name;
+  const name = langData(lang).name;
   const text = await geminiGenerate(
     [
       { inlineData: { mimeType: mime, data: buf.toString('base64') } },
@@ -652,14 +680,16 @@ function noteEleven(e) {
 async function elevenSpeech(text, lang, speed = 1) {
   if (elevenOut()) throw new Error('ElevenLabs TTS 401: quota_exceeded (remembered)');
   const voice = process.env.ELEVENLABS_VOICE_ID || 'JBFqnCBsd6RMkjVDRZzb';
-  const model = process.env[`ELEVENLABS_TTS_MODEL_${lang.toUpperCase()}`] || process.env.ELEVENLABS_TTS_MODEL || ELEVEN_MODEL[lang];
+  const builtIn = !!LANGS[lang];
+  // A typed-in language uses the most multilingual model and lets it detect the language.
+  const model = (builtIn && process.env[`ELEVENLABS_TTS_MODEL_${lang.toUpperCase()}`]) || process.env.ELEVENLABS_TTS_MODEL || ELEVEN_MODEL[lang] || 'eleven_v3';
   const r = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=mp3_44100_128`, {
     method: 'POST',
     headers: { 'content-type': 'application/json', 'xi-api-key': keys().elevenlabs, accept: 'audio/mpeg' },
     body: JSON.stringify({
       text,
       model_id: model,
-      language_code: lang,
+      ...(builtIn ? { language_code: lang } : {}),
       // ElevenLabs changes the speaking speed itself (0.7–1.2), which sounds natural.
       voice_settings: { stability: 0.6, similarity_boost: 0.8, speed: Math.min(1.2, Math.max(0.7, Number(speed) || 1)) },
     }),
@@ -669,8 +699,111 @@ async function elevenSpeech(text, lang, speed = 1) {
   return Buffer.from(await r.arrayBuffer());
 }
 
+// Google's natural text-to-speech: the second voice, used when ElevenLabs is out of credits or fails.
+// It speaks Malayalam and dozens of other languages that phones often have no voice for.
+const GEMINI_TTS = ['gemini-2.5-flash-preview-tts', 'gemini-2.5-flash-tts', 'gemini-2.5-pro-preview-tts'];
+function wav(pcm, rate) {
+  const h = Buffer.alloc(44);
+  h.write('RIFF', 0);
+  h.writeUInt32LE(36 + pcm.length, 4);
+  h.write('WAVEfmt ', 8);
+  h.writeUInt32LE(16, 16);
+  h.writeUInt16LE(1, 20); // PCM
+  h.writeUInt16LE(1, 22); // mono
+  h.writeUInt32LE(rate, 24);
+  h.writeUInt32LE(rate * 2, 28);
+  h.writeUInt16LE(2, 32);
+  h.writeUInt16LE(16, 34);
+  h.write('data', 36);
+  h.writeUInt32LE(pcm.length, 40);
+  return Buffer.concat([h, pcm]);
+}
+async function geminiSpeech(text, lang) {
+  const key = keys().gemini;
+  if (!key) throw Object.assign(new Error('No Gemini key'), { status: 503 });
+  const name = langData(lang).name;
+  let last;
+  for (const model of GEMINI_TTS.filter((m) => !retired.has(m))) {
+    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify({
+        contents: [{ role: 'user', parts: [{ text: `Read this aloud in ${name}, clearly, warmly and at a calm pace:\n${text}` }] }],
+        generationConfig: { responseModalities: ['AUDIO'], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } } },
+      }),
+      signal: AbortSignal.timeout(25000),
+    });
+    if (r.status === 404) {
+      retired.add(model);
+      last = new Error(`Gemini TTS ${model} 404`);
+      continue;
+    }
+    if (!r.ok) throw Object.assign(new Error(`Gemini TTS ${r.status}: ${await readError(r)}`), { status: r.status === 429 ? 429 : 502 });
+    const j = await r.json();
+    const part = (j.candidates?.[0]?.content?.parts || []).find((p) => p.inlineData?.data);
+    if (!part) throw new Error('Gemini TTS sent no audio');
+    const rate = Number(/rate=(\d+)/.exec(part.inlineData.mimeType || '')?.[1]) || 24000;
+    return { audio: wav(Buffer.from(part.inlineData.data, 'base64'), rate), type: 'audio/wav', voice: 'gemini' };
+  }
+  throw last || new Error('No Gemini voice model available');
+}
+
+/** Speech for one sentence: ElevenLabs first, Google's voice as the backup. Resolves to { audio, type }. */
 export async function speech({ text, lang, speed }) {
   const k = keys();
-  if (!k.elevenlabs) throw Object.assign(new Error('No text-to-speech key configured'), { status: 503 });
-  return elevenSpeech(text, lang, speed);
+  if (!k.elevenlabs && !k.gemini) throw Object.assign(new Error('No text-to-speech key configured'), { status: 503 });
+  let lastErr;
+  if (k.elevenlabs && !elevenOut()) {
+    try {
+      return { audio: await elevenSpeech(text, lang, speed), type: 'audio/mpeg', voice: 'elevenlabs' };
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (k.gemini) {
+    try {
+      return await geminiSpeech(text, lang);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('ElevenLabs TTS 401: quota_exceeded (remembered)');
+}
+
+/** Translates the app's own words into a language the user typed in. */
+export async function translateStrings(language, strings) {
+  const prompt = `Translate the VALUES of this JSON from English into ${language}. It is the text of a phone app for people with low vision; most of it is read aloud.
+Rules: keep every key exactly as it is. Keep placeholders such as {n}, {m}, {km}, {deg}, {dir}, {turn}, {acc}, {v} and {name} unchanged. Arrays keep the same length and order. Use short, plain, natural wording. Do not use em dashes.
+Reply with only this JSON: {"meta": {"code": "<BCP 47 tag for ${language}, like ur or fr-FR>", "rtl": <true if it is written right to left>, "native": "<the name of ${language} written in ${language}>"}, "strings": <the translated JSON>}
+
+JSON to translate:
+${JSON.stringify(strings)}`;
+  let lastErr;
+  for (const model of geminiModels()) {
+    try {
+      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-goog-api-key': keys().gemini },
+        body: JSON.stringify({
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 16000, responseMimeType: 'application/json' },
+        }),
+        signal: AbortSignal.timeout(55000),
+      });
+      if (r.status === 404) {
+        retired.add(model);
+        continue;
+      }
+      if (!r.ok) throw Object.assign(new Error(`Gemini translate ${r.status}: ${await readError(r)}`), { status: r.status });
+      const j = await r.json();
+      const text = (j.candidates?.[0]?.content?.parts || []).filter((p) => !p.thought).map((p) => p.text || '').join('');
+      const out = JSON.parse(text);
+      if (!out?.strings || typeof out.strings !== 'object') throw new Error('translation missing');
+      return out;
+    } catch (e) {
+      lastErr = e;
+      if (e.status === 429) continue;
+    }
+  }
+  throw lastErr || new Error('No Gemini model for translation');
 }

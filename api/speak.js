@@ -6,12 +6,14 @@ export default async function handler(req, res) {
   const text = String(req.body.text || '').slice(0, 1200).trim();
   if (!text) return res.status(400).json({ error: 'No text' });
   try {
-    const mp3 = await speech({ text, lang: langOf(req.body.lang), speed: req.body.speed });
-    res.setHeader('Content-Type', 'audio/mpeg');
-    res.status(200).send(mp3);
+    const out = await speech({ text, lang: langOf(req.body.lang, req.body.langName), speed: req.body.speed });
+    res.setHeader('Content-Type', out.type);
+    res.setHeader('X-Voice', out.voice);
+    res.status(200).send(out.audio);
   } catch (e) {
     // Out of ElevenLabs credits: tell the app, so it switches to the phone's own voice at once.
-    if (/quota_exceeded|credits remaining/i.test(e.message)) {
+    // Every voice is out of credits or busy: tell the app, so it uses the phone's own voice at once.
+    if (/quota_exceeded|credits remaining|429|RESOURCE_EXHAUSTED/i.test(e.message) || e.status === 429) {
       return res.status(429).json({ error: 'quota' });
     }
     fail(res, e);

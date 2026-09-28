@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     image,
     mime,
     question: q,
-    lang: langOf(lang),
+    lang: langOf(lang, req.body.langName),
     history: hist,
     provider: provider === 'openrouter' || provider === 'gemini' ? provider : undefined,
   };
@@ -53,7 +53,7 @@ export default async function handler(req, res) {
       image,
       mime,
       question: q,
-      lang: langOf(lang),
+      lang: langOf(lang, req.body.langName),
       history: hist,
       provider: provider === 'openrouter' || provider === 'gemini' ? provider : undefined,
     });

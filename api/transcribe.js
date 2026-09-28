@@ -8,7 +8,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Bad audio' });
   }
   try {
-    const text = await transcribe({ audio, mime, lang: langOf(lang) });
+    const text = await transcribe({ audio, mime, lang: langOf(lang, req.body.langName) });
     res.status(200).json({ text });
   } catch (e) {
     fail(res, e);
