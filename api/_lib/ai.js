@@ -718,7 +718,18 @@ function wav(pcm, rate) {
   h.writeUInt32LE(pcm.length, 40);
   return Buffer.concat([h, pcm]);
 }
+// Google's voice has a small request quota, so audio already made is kept (in this server's memory
+// only, never stored) and the same sentence is not asked for twice.
+const voiceCache = new Map();
 async function geminiSpeech(text, lang) {
+  const ck = `${lang}|${text}`;
+  if (voiceCache.has(ck)) return voiceCache.get(ck);
+  const out = await geminiSpeechOnce(text, lang);
+  voiceCache.set(ck, out);
+  if (voiceCache.size > 300) voiceCache.delete(voiceCache.keys().next().value);
+  return out;
+}
+async function geminiSpeechOnce(text, lang) {
   const key = keys().gemini;
   if (!key) throw Object.assign(new Error('No Gemini key'), { status: 503 });
   const name = langData(lang).name;
@@ -749,7 +760,7 @@ async function geminiSpeech(text, lang) {
 }
 
 /** Speech for one sentence: ElevenLabs first, Google's voice as the backup. Resolves to { audio, type }. */
-export async function speech({ text, lang, speed }) {
+export async function speech({ text, lang, speed, preload = false }) {
   const k = keys();
   if (!k.elevenlabs && !k.gemini) throw Object.assign(new Error('No text-to-speech key configured'), { status: 503 });
   let lastErr;
@@ -760,6 +771,8 @@ export async function speech({ text, lang, speed }) {
       lastErr = e;
     }
   }
+  // Pre-loading is only worth it with ElevenLabs; Google's small quota is kept for what is said now.
+  if (preload) throw Object.assign(new Error('no preload with the backup voice'), { status: 204 });
   if (k.gemini) {
     try {
       return await geminiSpeech(text, lang);

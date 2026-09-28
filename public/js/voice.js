@@ -231,19 +231,23 @@ function limited(job, urgent) {
   });
 }
 
-async function fetchVoice(text, lang, speed) {
+// Which server voice answered last: with Google's (small request quota) sentences go in groups.
+let lastVoice = null;
+async function fetchVoice(text, lang, speed, preload = false) {
   for (let attempt = 0; ; attempt++) {
     // Resting after "no credits": only languages the phone cannot speak itself still ask the server.
     if (Date.now() < serverRestUntil && voiceFor(lang)) throw new Error('tts');
     const r = await fetch('/api/speak', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ text, lang, speed, ...(lang === 'x' ? { langName: settings.custom?.name } : {}) }),
+      body: JSON.stringify({ text, lang, speed, ...(preload ? { preload: true } : {}), ...(lang === 'x' ? { langName: settings.custom?.name } : {}) }),
     });
+    if (r.status === 204) throw new Error('tts'); // nothing to pre-load right now
     if (r.ok) {
       const data = await r.arrayBuffer();
       data.audioType = r.headers.get('content-type') || 'audio/mpeg'; // MP3 from ElevenLabs, WAV from Google
-      voiceLog(`voice: ${r.headers.get('x-voice') || 'server'}`);
+      lastVoice = r.headers.get('x-voice') || lastVoice;
+      voiceLog(`voice: ${lastVoice || 'server'}`);
       return data;
     }
     voiceLog(`ElevenLabs answered ${r.status} for: ${text.slice(0, 30)}`);
@@ -267,7 +271,7 @@ function fetchServerAudio(text, lang, urgent = true) {
     cache.set(key, hit); // most recently used goes last
     return hit;
   }
-  const p = limited(() => fetchVoice(text, lang, speed), urgent)
+  const p = limited(() => fetchVoice(text, lang, speed, !urgent), urgent)
     .then((data) => {
       const c = audioContext();
       if (!c) throw new Error('no-audio');
@@ -405,11 +409,25 @@ function srWait(text, my) {
  * Speak text sentence by sentence. Resolves when finished or stopped.
  * onSentence(index, sentence) lets the screen show the part being spoken.
  */
+/** Joins sentences into groups of about `max` characters (fewer requests for Google's voice). */
+function group(parts, max = 220) {
+  const out = [];
+  for (const p of parts) {
+    if (out.length && out[out.length - 1].length + p.length < max) out[out.length - 1] += ' ' + p;
+    else out.push(p);
+  }
+  return out;
+}
+const numberOnly = (t) => /^[\s\d٠-٩൦-൯.,]+$/.test(t);
+
 export async function speak(text, { lang = settings.lang, onSentence } = {}) {
   stopSpeaking();
   speakerMode(false);
   const my = token;
-  const parts = splitSentences(text);
+  // A bare number (the countdown) must be instant: if the phone has no voice for this language,
+  // say it with the phone's English voice rather than wait for the server.
+  if (numberOnly(text) && !voiceFor(lang) && !serverOn()) return speakBrowser(text.trim(), 'en', my);
+  const parts = lastVoice === 'gemini' ? group(splitSentences(text)) : splitSentences(text);
   const useServer = serverVoice !== false && (serverOn() || !voiceFor(lang)); // no phone voice (often Malayalam): always the server's natural voice
   // Ask the server for every sentence at once so playback has no gaps.
   const urls = useServer ? parts.map((p) => fetchServerAudio(p, lang).catch(() => null)) : [];
@@ -453,9 +471,16 @@ export function speakStream({ lang = settings.lang, onSentence } = {}) {
   // A sentence is finished when its full stop (or ? ! ؟ ।) is followed by a space.
   const cut = () => {
     let m;
-    while ((m = /[.!?؟।]+["'”’)\]]*\s+/.exec(buf))) {
-      enqueue(buf.slice(0, m.index + m[0].length));
-      buf = buf.slice(m.index + m[0].length);
+    // With Google's voice, wait for about two sentences so there are fewer requests.
+    const min = lastVoice === 'gemini' ? 180 : 0;
+    let from = 0;
+    while ((m = /[.!?؟।]+["'”’)\]]*\s+/g.exec(buf.slice(from)))) {
+      const endAt = from + m.index + m[0].length;
+      if (endAt >= min) {
+        enqueue(buf.slice(0, endAt));
+        buf = buf.slice(endAt);
+        from = 0;
+      } else from = endAt;
     }
   };
   const finished = (async () => {
