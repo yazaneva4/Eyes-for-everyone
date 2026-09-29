@@ -1,14 +1,15 @@
 // Speaks text out loud.
-//   'always'   → ElevenLabs is set up: use it for everything, phone voice only as a backup.
-//   'fallback' → (unused now) server voice only when the phone has none for the language.
+//   'always'   → ElevenLabs/Gemini for everything, phone voice only as a backup.
+//   'fallback' → the device's own voice (free, unlimited, no quota) whenever the language has
+//                one; the server is only used for languages the device can't speak.
 // Screen reader mode stays silent because the screen reader reads the live region instead.
 import { settings } from './settings.js';
 import { audioContext } from './sounds.js';
 import { LOCALES } from './i18n.js';
 
 let voices = [];
-// ElevenLabs is the voice for everything, from the very first word; the app turns it off only if
-// the server says there is no ElevenLabs key. The phone's own voice is just an emergency backup.
+// The device's own voice (including a downloaded "Siri" voice) costs nothing and never runs out,
+// so it is the default; the paid server voice only fills in languages the device has no voice for.
 let serverVoice = 'always'; // false | 'fallback' | 'always'
 // Recently spoken sentences, kept in memory only so repeated prompts play instantly.
 const cache = new Map();

@@ -1366,7 +1366,7 @@ async function checkServer() {
   try {
     const h = await (await fetch('/api/health')).json();
     useServerStt(h.transcribe);
-    enableServerVoice(h.voice ? 'always' : false);
+    enableServerVoice(h.voice ? 'fallback' : false);
     preloadPrompts();
   } catch {
     useServerStt(false);
