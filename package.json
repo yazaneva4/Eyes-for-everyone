@@ -5,7 +5,8 @@
   "description": "A one-tap, voice-first camera helper for people with low vision.",
   "type": "module",
   "scripts": {
-    "dev": "node dev-server.js"
+    "dev": "node dev-server.js",
+    "test": "node --test tests/*.test.js"
   },
   "engines": {
     "node": ">=18"
