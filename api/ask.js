@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   }
   const q = String(question || '').slice(0, 500).trim() || 'Describe what you see.';
   const hist = Array.isArray(history)
-    ? history.slice(-3).filter((h) => h && typeof h === 'object' && !Array.isArray(h)).map((h) => ({ q: String(h.q || '').slice(0, 500), a: String(h.a || '').slice(0, 1500) }))
+    ? history.slice(-3).filter((h) => h && typeof h === 'object' && !Array.isArray(h)).map((h) => ({ q: (typeof h.q === 'string' ? h.q : '').slice(0, 500), a: (typeof h.a === 'string' ? h.a : '').slice(0, 1500) }))
     : [];
   const started = Date.now();
   const opts = {

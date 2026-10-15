@@ -23,6 +23,12 @@ export function guard(req, res) {
     res.status(400).json({ error: 'Send JSON' });
     return false;
   }
+  for (const key of ['question', 'lang', 'langName', 'mime', 'provider', 'text', 'language']) {
+    if (req.body[key] !== undefined && typeof req.body[key] !== 'string') {
+      res.status(400).json({ error: `${key} must be text` });
+      return false;
+    }
+  }
   return true;
 }
 

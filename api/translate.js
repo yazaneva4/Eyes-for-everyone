@@ -7,7 +7,7 @@ export default async function handler(req, res) {
   const language = String(req.body.language || '').trim();
   const strings = req.body.strings;
   if (!customNameOk(language)) return res.status(400).json({ error: 'Bad language name' });
-  if (!strings || typeof strings !== 'object' || JSON.stringify(strings).length > 60000) return res.status(400).json({ error: 'Bad strings' });
+  if (!strings || typeof strings !== 'object' || Array.isArray(strings) || Object.values(strings).some(value => typeof value !== 'string') || JSON.stringify(strings).length > 60000) return res.status(400).json({ error: 'Bad strings' });
   try {
     res.status(200).json(await translateStrings(language, strings));
   } catch (e) {
