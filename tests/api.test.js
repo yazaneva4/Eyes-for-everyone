@@ -47,3 +47,19 @@ test('malformed history entries do not crash a valid photo request', async () =>
     else process.env.MOCK_AI = previous;
   }
 });
+
+
+test('unexpected JSON types are rejected before reaching AI providers', async () => {
+  for (const field of ['question', 'lang', 'langName', 'mime', 'provider', 'text', 'language']) {
+    for (const value of [null, [], {}, { toString: null }]) {
+      const res = response();
+      await ask({ method: 'POST', headers: {}, body: { image: 'YWJj', [field]: value } }, res);
+      assert.equal(res.code, 400, field);
+    }
+  }
+});
+
+test('language helpers reject malformed objects without coercion', () => {
+  assert.equal(langOf({ toString: null }), 'en');
+  assert.equal(langOf('x', { toString: null }), 'en');
+});

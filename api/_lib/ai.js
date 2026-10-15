@@ -9,11 +9,11 @@ export const LANGS = {
 
 // A language the user typed in ("Urdu", "Français"): letters, spaces and a few marks, at most 40.
 const CUSTOM_NAME = /^[\p{L}\p{M}][\p{L}\p{M} ()'.-]{1,39}$/u;
-export const customNameOk = (n) => CUSTOM_NAME.test(String(n || '').trim());
+export const customNameOk = (n) => typeof n === 'string' && CUSTOM_NAME.test(n.trim());
 
 /** 'en' | 'ar' | 'ml', or 'x:<name>' for a language the user typed in. Anything else is English. */
 export function langOf(code, name) {
-  if (Object.hasOwn(LANGS, code)) return code;
+  if (typeof code === 'string' && Object.hasOwn(LANGS, code)) return code;
   if (code === 'x' && customNameOk(name)) return 'x:' + String(name).trim();
   return 'en';
 }
