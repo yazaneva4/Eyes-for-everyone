@@ -19,7 +19,7 @@ export function guard(req, res) {
       return false;
     }
   }
-  if (!req.body || typeof req.body !== 'object') {
+  if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
     res.status(400).json({ error: 'Send JSON' });
     return false;
   }
@@ -32,4 +32,4 @@ export function fail(res, e) {
   res.status(e?.status || 502).json({ error: e?.status === 503 ? e.message : 'The AI service failed' });
 }
 
-export const isB64 = (s, max) => typeof s === 'string' && s.length > 0 && s.length <= max && /^[A-Za-z0-9+/=]+$/.test(s.slice(0, 200));
+export const isB64 = (s, max) => typeof s === 'string' && s.length > 0 && s.length <= max && s.length % 4 === 0 && /^[A-Za-z0-9+/]+={0,2}$/.test(s);

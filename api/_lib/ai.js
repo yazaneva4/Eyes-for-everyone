@@ -13,14 +13,14 @@ export const customNameOk = (n) => CUSTOM_NAME.test(String(n || '').trim());
 
 /** 'en' | 'ar' | 'ml', or 'x:<name>' for a language the user typed in. Anything else is English. */
 export function langOf(code, name) {
-  if (LANGS[code]) return code;
+  if (Object.hasOwn(LANGS, code)) return code;
   if (code === 'x' && customNameOk(name)) return 'x:' + String(name).trim();
   return 'en';
 }
 
 /** Name and fixed phrases for a language code from langOf(). */
 export function langData(lang) {
-  if (LANGS[lang]) return LANGS[lang];
+  if (Object.hasOwn(LANGS, lang)) return LANGS[lang];
   const name = String(lang).slice(2);
   // The model says these fixed phrases in the typed language itself.
   return { name, custom: true, notSure: `the ${name} for "I'm not sure."`, checkPerson: `the ${name} for "Please check with a person."` };
