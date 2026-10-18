@@ -1,10 +1,14 @@
 // Service worker: lets the app (and Qibla) open without internet.
-const CACHE = 'eyes-v58';
+const CACHE = 'eyes-v59';
 const SHELL = [
   '/',
   '/css/app.css',
   '/css/fonts.css',
   '/fonts/atkinson-hyperlegible-next-latin.woff2',
+  '/fonts/atkinson-hyperlegible-next-latin-ext.woff2',
+  '/fonts/noto-sans-arabic-arabic.woff2',
+  '/fonts/noto-sans-malayalam-malayalam.woff2',
+  '/favicon.ico',
   '/js/app.js',
   '/js/i18n.js',
   '/js/settings.js',
@@ -29,7 +33,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('eyes-v') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -47,10 +51,18 @@ self.addEventListener('fetch', (e) => {
       .then((res) => {
         if (res.ok && res.type === 'basic') {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(e.request, copy));
+          e.waitUntil(caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {}));
         }
         return res;
       })
-      .catch(async () => (await caches.match(e.request, { ignoreSearch: true })) || (await caches.match('/')))
+      .catch(async () => {
+        const cache = await caches.open(CACHE);
+        const saved = await cache.match(e.request, { ignoreSearch: true });
+        if (saved) return saved;
+        // Only page navigations can fall back to HTML. Returning the app shell
+        // for a missing script, font or image produces invalid resource data.
+        if (e.request.mode === 'navigate') return (await cache.match('/')) || Response.error();
+        return Response.error();
+      })
   );
 });
