@@ -1,0 +1,11 @@
+const fs = require('node:fs');
+const path = require('node:path');
+const root = path.join(__dirname,'..');
+const out = path.join(root,'public');
+const file = path.join(out,'index.html');
+let html = fs.readFileSync(file,'utf8');
+html = html.replace(/ data-app-revision="[^"]*"/g,'');
+const revision = process.env.VERCEL_GIT_COMMIT_SHA || '';
+if (revision && !/^[a-f0-9]{7,64}$/i.test(revision)) throw new Error('Invalid build revision');
+html = html.replace('<html ', '<html data-app-revision="'+revision+'" ');
+fs.writeFileSync(file,html);

@@ -176,3 +176,7 @@ It is built to feel like a calm, modern camera app, not a remote control:
 | `ELEVENLABS_VOICE_ID` | `JBFqnCBsd6RMkjVDRZzb` | Any voice ID from your ElevenLabs voice library. |
 | `ELEVENLABS_TTS_MODEL` | `eleven_flash_v2_5` for English and Arabic, `eleven_v3` for Malayalam | Flash is fastest but has no Malayalam. Override one language with `ELEVENLABS_TTS_MODEL_ML` (or `_EN`, `_AR`). |
 | `ELEVENLABS_STT_MODEL` | `scribe_v2` | ElevenLabs speech-to-text, tried first, with Gemini as the backup. |
+
+## Live updates
+
+Server capability flags refresh every minute and on reconnect or returning to the tab, without making paid provider test calls. Service-worker updates are checked on the same events. New website deployments offer a reload when ready, preserving the current photo, recording and answer until the user chooses to reload.

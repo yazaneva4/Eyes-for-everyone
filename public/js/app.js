@@ -1362,14 +1362,26 @@ addEventListener('resize', () => {
   if (currentText && !paging && !el.body.dataset.running) layoutText(currentText);
 });
 
+let checkingServer = false;
+let serverCapabilities = null;
 async function checkServer() {
+  if (checkingServer || document.hidden || !navigator.onLine) return;
+  checkingServer = true;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
   try {
-    const h = await (await fetch('/api/health')).json();
+    const response = await fetch('/api/health', { cache: 'no-store', signal: controller.signal });
+    if (!response.ok) throw new Error('health unavailable');
+    const h = await response.json();
     useServerStt(h.transcribe);
     enableServerVoice(h.voice ? 'fallback' : false);
-    preloadPrompts();
+    const next = JSON.stringify([h.transcribe, h.voice]);
+    if (serverCapabilities !== next) { serverCapabilities = next; preloadPrompts(); }
   } catch {
     useServerStt(false);
+  } finally {
+    clearTimeout(timeout);
+    checkingServer = false;
   }
 }
 
@@ -1403,4 +1415,13 @@ initGlass({ video: el.video, photo: el.photo, body: el.body });
 checkServer();
 showStart();
 // Offline app shell: the app and Qibla open without internet.
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(() => {});
+let offlineRegistration = null;
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => { offlineRegistration = reg; }).catch(() => {});
+const resumeLive = () => {
+  if (document.hidden || !navigator.onLine) return;
+  void checkServer();
+  if (offlineRegistration) void offlineRegistration.update().catch(() => {});
+};
+setInterval(resumeLive, 60000);
+addEventListener('online', resumeLive);
+document.addEventListener('visibilitychange', resumeLive);

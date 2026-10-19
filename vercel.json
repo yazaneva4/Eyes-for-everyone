@@ -51,5 +51,6 @@
         }
       ]
     }
-  ]
+  ],
+  "buildCommand": "node scripts/build.cjs"
 }

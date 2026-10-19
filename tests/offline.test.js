@@ -18,7 +18,7 @@ function worker() {
     self: { addEventListener: (name, handler) => { events[name] = handler; }, skipWaiting() {}, clients: { claim() {} } },
     location: { origin: 'https://eyes.example' }, URL, Response,
     fetch: async () => { throw new Error('offline'); },
-    caches: { open: async () => cache, keys: async () => ['eyes-v58', 'eyes-v59', 'another-app'], delete: async key => deleted.push(key) },
+    caches: { open: async () => cache, keys: async () => ['eyes-v58', 'eyes-v60', 'another-app'], delete: async key => deleted.push(key) },
   });
   return { events, deleted, get shell() { return shell; } };
 }
