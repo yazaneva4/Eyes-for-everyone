@@ -14,8 +14,8 @@
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/css/fonts.css" />
-    <link rel="stylesheet" href="/css/app.css?v=orb78" />
-    <script defer src="/js/orb.js?v=orb78"></script>
+    <link rel="stylesheet" href="/css/app.css?v=orb79" />
+    <script defer src="/js/orb.js?v=orb79"></script>
     <script type="module" src="/js/app.js"></script>
   <script defer src="/app-updates.js"></script>
 </head>
@@ -93,7 +93,14 @@
         </div>
         <!-- A glowing orange orb: it spins, and grows and shrinks with how loud you or the AI speak -->
         <div class="orb3d" aria-hidden="true">
-          <canvas class="orb-canvas" aria-hidden="true"></canvas>
+          <div class="orb-aura"></div>
+          <div class="orb-energy-ring orb-ring-one"></div>
+          <div class="orb-energy-ring orb-ring-two"></div>
+          <div class="orb-energy-ring orb-ring-three"></div>
+          <div class="orb-shell"><canvas class="orb-canvas" aria-hidden="true"></canvas></div>
+          <span class="orb-spark"></span>
+          <span class="orb-spark orb-spark-two"></span>
+          <span class="orb-spark orb-spark-three"></span>
         </div>
       </div>
 
