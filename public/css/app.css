@@ -764,21 +764,22 @@ body[data-state='start'] .tagline {
 .orb3d.is-fluid::after {
   content: "";
   position: absolute;
-  z-index: 1;
-  inset: 7%;
+  z-index: 2;
+  inset: 4%;
   border-radius: 50%;
   pointer-events: none;
   background:
-    radial-gradient(ellipse at 25% 30%, rgb(255 229 174 / .78), transparent 42%),
-    radial-gradient(ellipse at 72% 38%, rgb(255 112 23 / .82), transparent 48%),
-    radial-gradient(ellipse at 58% 78%, rgb(171 35 3 / .7), transparent 44%),
-    radial-gradient(ellipse at 35% 68%, rgb(255 166 54 / .62), transparent 50%);
-  background-size: 160% 160%, 170% 170%, 150% 150%, 180% 180%;
-  background-position: 0% 0%, 100% 20%, 80% 100%, 10% 80%;
-  filter: blur(13px) saturate(1.25);
+    radial-gradient(ellipse at 22% 24%, rgb(255 244 198 / .98), transparent 30%),
+    radial-gradient(ellipse at 76% 28%, rgb(255 119 17 / .96), transparent 39%),
+    radial-gradient(ellipse at 67% 78%, rgb(113 19 2 / .94), transparent 38%),
+    radial-gradient(ellipse at 28% 72%, rgb(255 160 42 / .94), transparent 42%),
+    radial-gradient(ellipse at 48% 48%, rgb(255 89 8 / .62), transparent 62%);
+  background-size: 190% 190%, 210% 210%, 185% 185%, 200% 200%, 170% 170%;
+  background-position: 0% 0%, 100% 0%, 100% 100%, 0% 100%, 50% 50%;
+  filter: blur(8px) saturate(1.55);
   mix-blend-mode: screen;
-  opacity: .82;
-  animation: orb-liquid-flow 5.5s ease-in-out infinite alternate;
+  opacity: .96;
+  animation: orb-liquid-flow 3.2s ease-in-out infinite alternate;
   will-change: background-position, transform;
 }
 
