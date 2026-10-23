@@ -723,7 +723,7 @@ body[data-state='start'] .tagline {
   display: grid;
   place-items: center;
   width: min(44vmin, 200px, 76vw);
-  height: auto;
+  height: min(44vmin, 200px, 76vw);
   aspect-ratio: 1;
   flex: 0 0 auto;
   border-radius: 50%;
