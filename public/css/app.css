@@ -435,7 +435,7 @@ body[data-state='working'] .orb3d,
 body[data-state='solving'] .orb3d,
 body[data-state='searching'] .orb3d,
 body[data-state='composing'] .orb3d,
-body[data-state='answer'].speaking .orb3d {
+body[data-state='answer'] .orb3d {
   opacity: 1;
   transform: none;
 }
@@ -760,6 +760,43 @@ body[data-state='start'] .tagline {
   pointer-events: none;
 }
 
+/* Visible liquid-light movement as a CSS fallback as well as the canvas renderer. */
+.orb3d.is-fluid::after {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  inset: 7%;
+  border-radius: 50%;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 25% 30%, rgb(255 229 174 / .78), transparent 42%),
+    radial-gradient(ellipse at 72% 38%, rgb(255 112 23 / .82), transparent 48%),
+    radial-gradient(ellipse at 58% 78%, rgb(171 35 3 / .7), transparent 44%),
+    radial-gradient(ellipse at 35% 68%, rgb(255 166 54 / .62), transparent 50%);
+  background-size: 160% 160%, 170% 170%, 150% 150%, 180% 180%;
+  background-position: 0% 0%, 100% 20%, 80% 100%, 10% 80%;
+  filter: blur(13px) saturate(1.25);
+  mix-blend-mode: screen;
+  opacity: .82;
+  animation: orb-liquid-flow 5.5s ease-in-out infinite alternate;
+  will-change: background-position, transform;
+}
+
+@keyframes orb-liquid-flow {
+  0% {
+    background-position: 0% 0%, 100% 20%, 80% 100%, 10% 80%;
+    transform: rotate(-8deg) scale(.96);
+  }
+  50% {
+    background-position: 75% 35%, 10% 100%, 15% 0%, 90% 20%;
+    transform: rotate(12deg) scale(1.06);
+  }
+  100% {
+    background-position: 25% 100%, 70% 0%, 100% 45%, 0% 15%;
+    transform: rotate(-4deg) scale(1.02);
+  }
+}
+
 /* Ambient light expands softly around the orb; it never forms a sharp ring. */
 .orb3d::before {
   content: "";
@@ -814,6 +851,7 @@ body[data-state='answer'].speaking .orb3d {
 @media (prefers-reduced-motion: reduce) {
   .orb3d,
   .orb3d::before,
+  .orb3d::after,
   body[data-state='listening']:not(.recording) .orb3d,
   body[data-state='thinking'] .orb3d {
     animation: none !important;
