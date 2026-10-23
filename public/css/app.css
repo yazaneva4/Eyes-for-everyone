@@ -1681,4 +1681,4 @@ body[data-state='working'] .orb3d .orb-shell { animation:pulse-orb-working 3.2s 
 
 
 /* The app displays the original uploaded orb from its own HTML file. */
-.orb3d .pulse-orb-frame { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; z-index:10; pointer-events:none; }
+.orb3d .pulse-orb-frame { position:absolute; inset:-12%; width:124%; height:124%; display:block; border:0; border-radius:0; background:transparent; z-index:10; pointer-events:none; }
