@@ -429,18 +429,33 @@ body[data-state='answer'] .orb {
 /* On the opening screen, show the brand above the orb instead of hiding the orb
    until the user starts listening. */
 body[data-state='start'] .focus {
-  grid-template-rows: minmax(0, .72fr) minmax(0, 1fr);
+  display: block;
+  position: relative;
 }
 body[data-state='start'] .brand {
-  grid-area: 1 / 1;
-  align-self: center;
-  z-index: 1;
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  width: min(100%, 420px);
+  transform: translate(-50%, -50%);
+  z-index: 2;
 }
 body[data-state='start'] .orb3d {
-  grid-area: 2 / 1;
-  align-self: center;
-  opacity: 1;
-  transform: none;
+  position: absolute !important;
+  left: 50% !important;
+  top: 62% !important;
+  width: min(58vmin, 260px, 78vw) !important;
+  height: min(58vmin, 260px, 78vw) !important;
+  margin: 0 !important;
+  display: grid !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 3;
+}
+body[data-state='start'] .orb3d .pulse-orb-frame {
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 body[data-state='start'] .brand,
 body[data-state='ready'][data-camera='on'][data-mode='describe'] .viewfinder,
