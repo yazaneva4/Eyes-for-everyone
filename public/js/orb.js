@@ -81,6 +81,16 @@
     ctx.restore();
   }
 
+  // Small radial-gradient helper used by every moving light field.
+  // Missing this function stopped the first animation frame with a ReferenceError.
+  function radialGlow(x, y, radius, innerColor, outerColor) {
+    const safeRadius = Math.max(0.001, radius);
+    const gradient = ctx.createRadialGradient(x, y, 0, x, y, safeRadius);
+    gradient.addColorStop(0, innerColor);
+    gradient.addColorStop(1, outerColor);
+    return gradient;
+  }
+
   function draw(t, state, energy) {
     const size = Math.min(width, height);
     if (!size) return;
