@@ -20,18 +20,15 @@
   let frame = 0;
   let isVisible = true;
 
-  const active = () => {
-    const state = body.dataset.state;
-    return isVisible && !document.hidden &&
-      (state === 'thinking' || state === 'listening' ||
-       (state === 'answer' && body.classList.contains('speaking')));
-  };
+  // Keep a gentle idle animation running too; the previous state gate could
+  // leave the canvas completely still whenever the app used another state name.
+  const active = () => isVisible && !document.hidden;
 
   const currentState = () => body.dataset.state || 'start';
 
   function activityFor(state) {
     const level = Number.parseFloat(getComputedStyle(body).getPropertyValue('--level')) || 0;
-    if (state === 'thinking') return 0.72;
+    if (state === 'thinking' || state === 'working' || state === 'solving') return 0.78;
     if (state === 'listening') return Math.max(0.12, Math.min(1, 0.12 + level * 0.78));
     if (state === 'answer' && body.classList.contains('speaking')) {
       return Math.max(0.3, Math.min(1, 0.3 + level * 0.58));
@@ -197,7 +194,8 @@
     }
     if (previousFrame) {
       const delta = Math.min((now - previousFrame) / 1000, 0.045);
-      const speed = currentState() === 'thinking' ? 0.92 : 0.38;
+      const state = currentState();
+      const speed = ['thinking', 'working', 'solving', 'searching', 'composing'].includes(state) ? 1.12 : 0.46;
       time += delta * speed;
     }
     previousFrame = now;
