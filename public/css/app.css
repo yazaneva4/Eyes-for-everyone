@@ -818,6 +818,43 @@ body[data-state='start'] .tagline {
   50% { transform: scale(1.06); opacity: 0.88; }
 }
 
+
+/* User's Pulse Orb design: rotating amber aura, orbital energy rings, and sparks. */
+.orb3d .orb-aura {
+  position:absolute; inset:-16%; z-index:0; border-radius:50%; pointer-events:none;
+  background:conic-gradient(from 0deg,transparent 0 7%,rgb(255 85 0 / .45) 15%,transparent 27%,rgb(255 185 55 / .38) 41%,transparent 57%,rgb(255 64 0 / .34) 70%,transparent 84%,rgb(255 166 30 / .34) 94%,transparent);
+  filter:blur(24px); opacity:.78; animation:pulse-aura-spin 13s linear infinite;
+}
+.orb3d .orb-aura::before {
+  content:""; position:absolute; inset:11%; border-radius:50%;
+  background:conic-gradient(from 180deg,rgb(255 176 44 / .27),transparent 24%,rgb(255 70 0 / .42) 48%,transparent 70%,rgb(255 207 93 / .30));
+  filter:blur(20px); animation:pulse-aura-spin 8s linear infinite reverse;
+}
+.orb3d .orb-energy-ring {
+  display:block; position:absolute; z-index:2; inset:-8%; border:1px solid rgb(255 173 74 / .32);
+  border-radius:50%; pointer-events:none; box-shadow:0 0 10px rgb(255 114 12 / .08),inset 0 0 7px rgb(255 187 70 / .05);
+}
+.orb3d .orb-ring-one { transform:rotate(-28deg) scaleY(.33); animation:pulse-ring-drift 9s ease-in-out infinite; }
+.orb3d .orb-ring-two { inset:-3%; border-color:rgb(255 104 28 / .27); transform:rotate(52deg) scaleY(.43); animation:pulse-ring-drift-two 11s ease-in-out infinite; }
+.orb3d .orb-ring-three { inset:-13%; border-color:rgb(255 204 109 / .14); transform:rotate(77deg) scaleY(.27); animation:pulse-ring-drift 17s ease-in-out infinite reverse; }
+.orb3d .orb-spark {
+  display:block; position:absolute; z-index:4; width:5px; height:5px; border-radius:50%; pointer-events:none;
+  background:#fff0be; box-shadow:0 0 9px 3px rgb(255 162 49 / .75),0 0 22px 6px rgb(255 77 0 / .25);
+  top:14%; right:12%; animation:pulse-sparkle 2.7s ease-in-out infinite;
+}
+.orb3d .orb-spark-two { width:3px;height:3px;top:72%;right:1%;animation-delay:-1.1s;animation-duration:3.2s; }
+.orb3d .orb-spark-three { width:4px;height:4px;top:82%;left:11%;right:auto;animation-delay:-.6s; }
+@keyframes pulse-aura-spin { to { transform:rotate(360deg); } }
+@keyframes pulse-ring-drift { 0%,100% { rotate:-7deg;scale:1;opacity:.42; } 50% { rotate:7deg;scale:1.035;opacity:.88; } }
+@keyframes pulse-ring-drift-two { 0%,100% { rotate:5deg;scale:.98;opacity:.28; } 50% { rotate:-8deg;scale:1.04;opacity:.75; } }
+@keyframes pulse-sparkle { 0%,100% { opacity:.25;transform:scale(.65); } 50% { opacity:1;transform:scale(1.4); } }
+body[data-state='thinking'] .orb3d .orb-aura { animation-duration:4.5s; }
+body[data-state='working'] .orb3d .orb-energy-ring { animation-duration:2.4s; opacity:.9; }
+body[data-state='working'] .orb3d .orb-ring-two { animation-duration:1.65s; animation-direction:reverse; }
+@media (prefers-reduced-motion:reduce) {
+  .orb3d .orb-aura,.orb3d .orb-aura::before,.orb3d .orb-energy-ring,.orb3d .orb-spark { animation-duration:.01ms !important; animation-iteration-count:1 !important; }
+}
+
 /* State motion: calm when listening, more animated while the assistant thinks. */
 body[data-state='listening']:not(.recording) .orb3d {
   animation: orb-breathe 3.2s ease-in-out infinite;
