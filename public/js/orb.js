@@ -11,7 +11,6 @@
   if (!orb || !canvas || !ctx) return;
 
   const body = document.body;
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   let width = 1;
   let height = 1;
   let dpr = 1;
@@ -208,7 +207,6 @@
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    if (reducedMotion.matches) draw(time, currentState(), activityFor(currentState()));
   }
 
   function stop() {
@@ -242,12 +240,6 @@
   }
 
   function sync() {
-    if (reducedMotion.matches) {
-      stop();
-      const state = currentState();
-      draw(time, state, activityFor(state));
-      return;
-    }
     if (active()) {
       if (!frame) {
         previousFrame = 0;
@@ -276,6 +268,5 @@
 
   new MutationObserver(sync).observe(body, { attributes: true, attributeFilter: ['data-state', 'class'] });
   document.addEventListener('visibilitychange', sync);
-  reducedMotion.addEventListener('change', sync);
   sync();
 })();
