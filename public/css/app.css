@@ -1745,3 +1745,71 @@ body[data-state='working'] .orb3d .orb-shell { animation:pulse-orb-working 3.2s 
 
 /* The app displays the original uploaded orb from its own HTML file. */
 .orb3d .pulse-orb-frame { position:absolute; inset:-12%; width:124%; height:124%; display:block; border:0; border-radius:0; background:transparent; z-index:10; pointer-events:none; }
+
+/* Start-screen repair: keep the welcome layout predictable in portrait and landscape.
+   The landscape app grid previously squeezed the start screen into one side column. */
+body[data-state='start'] .hud {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  max-width: none !important;
+  margin: 0 !important;
+  column-gap: 0 !important;
+}
+body[data-state='start'] .focus {
+  flex: 1 1 0 !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  grid-template-columns: minmax(0, 1fr) !important;
+  grid-template-rows: min-content minmax(0, 1fr) !important;
+  align-content: stretch !important;
+  justify-items: center !important;
+  gap: 0 !important;
+}
+body[data-state='start'] .brand {
+  width: min(100%, 420px) !important;
+  max-height: 44% !important;
+  gap: 7px !important;
+  padding: 0 !important;
+  align-self: start !important;
+  justify-self: center !important;
+  opacity: 1 !important;
+  transform: none !important;
+}
+body[data-state='start'] .brand .logo {
+  width: min(12vmin, 56px) !important;
+}
+body[data-state='start'] .wordmark {
+  font-size: clamp(23pt, 7vw, 34pt) !important;
+  line-height: 1.08 !important;
+  text-wrap: balance;
+}
+body[data-state='start'] .tagline {
+  max-width: 32ch !important;
+  font-size: clamp(10.5pt, 3vw, 14pt) !important;
+  line-height: 1.25 !important;
+}
+body[data-state='start'] .orb3d {
+  width: min(43vmin, 220px, 64vw) !important;
+  height: min(43vmin, 220px, 64vw) !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  max-width: 100% !important;
+  max-height: 100% !important;
+  place-self: center !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+}
+body[data-state='start'] .orb3d .pulse-orb-frame {
+  position: absolute !important;
+  inset: -8% !important;
+  width: 116% !important;
+  height: 116% !important;
+  display: block !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border: 0 !important;
+  background: transparent !important;
+}
