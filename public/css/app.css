@@ -931,19 +931,7 @@ body:is([data-state='working'], [data-state='solving'], [data-state='searching']
 body:is([data-state='working'], [data-state='solving'], [data-state='searching'], [data-state='composing']) .orb3d .orb-ring-three { animation-duration: 3.7s; }
 body:is([data-state='working'], [data-state='solving'], [data-state='searching'], [data-state='composing']) .orb3d .orb-aura { animation-duration: calc(3.4s / var(--rate)); }
 
-@media (prefers-reduced-motion: reduce) {
-  .orb3d,
-  .orb3d .orb-aura,
-  .orb3d .orb-aura::before,
-  .orb3d .orb-shell,
-  .orb3d .orb-energy-ring,
-  .orb3d .orb-spark {
-    animation-duration: .01ms !important;
-    animation-iteration-count: 1 !important;
-    transition: none !important;
-  }
-}
-
+/* The orb keeps its requested live motion; other interface animations still respect reduced-motion settings. */
 /* ---------- the message sheet ---------- */
 
 .sheet {
