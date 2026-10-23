@@ -426,31 +426,63 @@ body[data-state='answer'] .orb {
     opacity 0.35s ease,
     transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-/* On the opening screen, show the brand above the orb instead of hiding the orb
-   until the user starts listening. */
+/* Opening screen: a predictable two-row layout, with the brand above the
+   original animated orb. Keep the viewfinder and compass out of this screen. */
 body[data-state='start'] .focus {
-  display: block;
+  display: grid;
   position: relative;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+  align-content: stretch;
+  justify-items: center;
 }
 body[data-state='start'] .brand {
-  position: absolute;
-  left: 50%;
-  top: 22%;
+  grid-area: 1 / 1;
+  position: relative;
+  left: auto;
+  top: auto;
   width: min(100%, 420px);
-  transform: translate(-50%, -50%);
+  min-width: 0;
+  padding: 0;
+  padding-bottom: 0;
+  gap: 10px;
+  justify-items: center;
+  text-align: center;
+  transform: none !important;
   z-index: 2;
 }
+body[data-state='start'] .brand .logo {
+  width: min(16vmin, 72px);
+}
+body[data-state='start'] .brand-text {
+  justify-items: center;
+  gap: 8px;
+}
+body[data-state='start'] .wordmark {
+  max-width: none;
+  font-size: clamp(27pt, 8.5vw, 42pt);
+}
+body[data-state='start'] .tagline {
+  max-width: 30ch;
+  font-size: clamp(12pt, 3.8vw, 16pt);
+}
+body[data-state='start'] .viewfinder,
+body[data-state='start'] .compass {
+  display: none !important;
+}
 body[data-state='start'] .orb3d {
-  position: absolute !important;
-  left: 50% !important;
-  top: 62% !important;
+  grid-area: 2 / 1;
+  place-self: center;
+  position: relative !important;
+  left: auto !important;
+  top: auto !important;
   width: min(58vmin, 260px, 78vw) !important;
   height: min(58vmin, 260px, 78vw) !important;
   margin: 0 !important;
   display: grid !important;
   opacity: 1 !important;
   visibility: visible !important;
-  transform: translate(-50%, -50%) !important;
+  transform: none !important;
   z-index: 3;
 }
 body[data-state='start'] .orb3d .pulse-orb-frame {
