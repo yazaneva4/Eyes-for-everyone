@@ -366,12 +366,6 @@
   function setMode(nextMode) {
     mode = nextMode;
   
-  // Allow the host app to drive the original orb's built-in modes.
-  window.addEventListener('message', (event) => {
-    if (event.origin !== location.origin || !event.data || event.data.type !== 'pulse-orb-mode') return;
-    if (Object.prototype.hasOwnProperty.call(modes, event.data.mode)) setMode(event.data.mode);
-  });
-
   scene.dataset.mode = mode;
     const data = modes[mode];
     statusText.textContent = data.status;
@@ -380,6 +374,12 @@
     scene.style.setProperty('--rate', String(data.speed));
     startAnimation();
   }
+
+  // Listen at top level so the host app can switch modes immediately after iframe load.
+  window.addEventListener('message', (event) => {
+    if (event.origin !== location.origin || !event.data || event.data.type !== 'pulse-orb-mode') return;
+    if (Object.prototype.hasOwnProperty.call(modes, event.data.mode)) setMode(event.data.mode);
+  });
 
   scene.dataset.mode = mode;
 
