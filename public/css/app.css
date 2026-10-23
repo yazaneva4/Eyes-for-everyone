@@ -711,177 +711,107 @@ body[data-state='start'] .tagline {
   }
 }
 
-/* The orb: a glowing orange sphere with a swirling, grainy surface. It always spins, and its size
-   follows the loudness (--level) of whoever is speaking: you while listening, the AI while it talks.
-   `scale` is separate from `transform`, so the state animations never cancel the loudness. */
+/* Fluid orange AI orb: soft color fields instead of glossy bands or grain. */
 .orb3d {
   position: relative;
-  /* Fits the free space above the answer (with room to grow when the voice is loud) */
   height: min(44vmin, 200px, 76%);
   width: auto;
   aspect-ratio: 1;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   isolation: isolate;
-  background:
-    radial-gradient(ellipse 34% 26% at 36% 26%, rgb(255 250 240 / 0.95) 0%, rgb(255 236 210 / 0.7) 35%, transparent 100%),
-    radial-gradient(ellipse 50% 28% at 60% 84%, rgb(255 90 20 / 0.85), transparent 100%),
-    radial-gradient(ellipse 30% 40% at 88% 50%, rgb(255 60 0 / 0.5), transparent 100%),
-    radial-gradient(circle at 42% 36%, #fff3e2 0%, #ffc978 26%, #ff9a2e 50%, #e8590c 74%, #7a2204 100%);
+  background: radial-gradient(circle at 42% 35%, #ffd39a 0%, #ff9c37 34%, #df4e0b 68%, #922807 100%);
   box-shadow:
-    inset -12px -18px 30px rgb(120 30 0 / 0.45),
-    inset 10px 12px 22px rgb(255 240 220 / 0.7),
-    inset 0 0 40px 6px rgb(255 200 110 / 0.55),
-    0 0 0 1px rgb(255 190 120 / 0.5),
-    0 0 18px 2px rgb(255 190 90 / 0.9),
-    0 0 calc(60px + var(--level) * 80px) calc(4px + var(--level) * 18px) rgb(255 130 20 / 0.85),
-    0 0 calc(130px + var(--level) * 140px) calc(20px + var(--level) * 40px) rgb(255 90 0 / 0.55),
-    0 0 240px 60px rgb(255 80 0 / 0.25);
-  filter: brightness(calc(1.05 + var(--level) * 0.25)) saturate(1.15);
+    0 0 18px 2px rgb(255 139 35 / 0.46),
+    0 0 62px 14px rgb(255 105 18 / 0.3),
+    0 0 125px 30px rgb(244 73 5 / 0.15);
+  filter: saturate(1.14);
   scale: calc(0.72 + var(--level) * 0.62);
   transition:
     opacity 0.35s ease,
     transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
     scale 0.09s linear;
 }
+
+.orb3d.is-fluid {
+  background: transparent;
+  box-shadow:
+    0 0 20px 2px rgb(255 139 35 / 0.34),
+    0 0 64px 15px rgb(255 105 18 / 0.24),
+    0 0 126px 31px rgb(244 73 5 / 0.12);
+}
+
 .orb3d > span {
-  pointer-events: none;
+  display: none;
 }
-/* Swirling bands of molten colour, always spinning */
-.orb3d .swirl {
-  position: absolute;
-  inset: -20%;
-  border-radius: 50%;
-  background:
-    repeating-conic-gradient(from 0deg at 50% 50%, rgb(255 214 150 / 0.55) 0deg 14deg, rgb(200 60 0 / 0.35) 30deg 44deg, rgb(255 150 60 / 0.25) 60deg 72deg),
-    conic-gradient(from 90deg, rgb(255 240 210 / 0.4), transparent 25%, rgb(180 40 0 / 0.45) 50%, transparent 75%, rgb(255 240 210 / 0.4));
-  filter: blur(7px);
-  mix-blend-mode: overlay;
-  animation: spin 6s linear infinite;
-}
-/* Fine grain, like brushed metal / sand, turning the other way */
-.orb3d .grain {
-  position: absolute;
-  inset: -10%;
-  border-radius: 50%;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 0.85  0 0 0 0 0.6  0 0 0 1.4 -0.45'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
-    repeating-radial-gradient(circle at 50% 50%, rgb(255 255 255 / 0.08) 0 1px, transparent 1px 5px);
-  mix-blend-mode: soft-light;
-  opacity: 0.9;
-  animation: spin 14s linear infinite reverse;
-}
-@keyframes spin {
-  to {
-    rotate: 360deg;
-  }
-}
-/* Liquid light flowing inside (turns the opposite way to the swirl) */
-.orb3d .flow {
-  position: absolute;
-  inset: 8%;
-  border-radius: 50%;
-  background:
-    radial-gradient(40% 30% at 30% 70%, rgb(255 170 60 / 0.9), transparent 70%),
-    radial-gradient(35% 25% at 72% 35%, rgb(255 245 225 / 0.6), transparent 70%),
-    radial-gradient(30% 30% at 55% 50%, rgb(255 90 0 / 0.55), transparent 70%);
-  filter: blur(6px);
-  mix-blend-mode: screen;
-  opacity: 0.8;
-  animation: spin 4s linear infinite reverse;
-}
-/* A reflected-light band that slowly turns, so the surface looks liquid */
-.orb3d .sheen {
+
+.orb3d .orb-canvas {
   position: absolute;
   inset: 0;
-  border-radius: 50%;
-  background: conic-gradient(
-    from var(--angle),
-    rgb(255 255 255 / 0) 0deg,
-    rgb(255 245 230 / 0.45) 50deg,
-    rgb(90 20 0 / 0.35) 110deg,
-    rgb(255 240 220 / 0.25) 190deg,
-    rgb(90 20 0 / 0.3) 270deg,
-    rgb(255 255 255 / 0) 360deg
-  );
-  mix-blend-mode: soft-light;
-  animation: turn 7s linear infinite;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
-/* The curved window reflection on the upper left */
-.orb3d .glint {
+
+/* Ambient light expands softly around the orb; it never forms a sharp ring. */
+.orb3d::before {
+  content: "";
   position: absolute;
-  left: 16%;
-  top: 14%;
-  width: 46%;
-  height: 26%;
+  z-index: -1;
+  inset: -32%;
   border-radius: 50%;
-  background: linear-gradient(175deg, rgb(255 255 255 / 0.95), rgb(255 255 255 / 0) 80%);
-  transform: rotate(-24deg);
-  filter: blur(1.5px);
-  opacity: 0.8;
-  animation: glint-glide 4s ease-in-out infinite;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(255 121 25 / 0.28) 0%, rgb(255 88 9 / 0.14) 38%, transparent 72%);
+  filter: blur(18px);
+  opacity: 0.72;
+  animation: orb-aura-breathe 5.8s ease-in-out infinite;
 }
-@keyframes glint-glide {
-  0%,
-  100% {
-    transform: rotate(-24deg) translate(0, 0);
-  }
-  50% {
-    transform: rotate(-10deg) translate(10%, 6%);
-  }
+
+@keyframes orb-aura-breathe {
+  0%, 100% { transform: scale(0.94); opacity: 0.58; }
+  50% { transform: scale(1.06); opacity: 0.88; }
 }
-/* Waiting for you to speak: a slow breath */
+
+/* State motion: calm when listening, more animated while the assistant thinks. */
 body[data-state='listening']:not(.recording) .orb3d {
-  animation: orb-breathe 2.6s ease-in-out infinite;
+  animation: orb-breathe 3.2s ease-in-out infinite;
 }
+
 @keyframes orb-breathe {
-  50% {
-    transform: scale(1.05);
-  }
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.035); }
 }
-/* Thinking: spins fast and wobbles like liquid */
-body[data-state='thinking'] .orb3d .swirl {
-  animation-duration: 1.6s;
-}
-body[data-state='thinking'] .orb3d .flow {
-  animation-duration: 1.2s;
-}
-body[data-state='thinking'] .orb3d .sheen {
-  animation-duration: 1.6s;
-}
-body[data-state='thinking'] .orb3d .glint {
-  animation-duration: 1.8s;
-}
+
 body[data-state='thinking'] .orb3d {
-  animation: orb-think 2.4s ease-in-out infinite;
+  animation: orb-think 3.6s ease-in-out infinite;
+  filter: saturate(1.2) brightness(1.035);
 }
+
+body[data-state='thinking'] .orb3d::before {
+  opacity: 0.96;
+  animation-duration: 2.7s;
+}
+
 @keyframes orb-think {
-  0%,
-  100% {
-    transform: scale(1);
-    border-radius: 50%;
-  }
-  33% {
-    transform: scale(1.04, 0.98);
-    border-radius: 48% 52% 50% 50% / 52% 48% 52% 48%;
-  }
-  66% {
-    transform: scale(0.98, 1.04);
-    border-radius: 52% 48% 49% 51% / 48% 52% 48% 52%;
-  }
+  0%, 100% { transform: scale(1); }
+  35% { transform: scale(1.025); }
+  68% { transform: scale(0.99); }
 }
-/* While the AI talks, the orb comes back over the photo and moves with its voice */
+
 body[data-state='answer'].speaking .orb3d {
   opacity: 1;
   transform: none;
+  filter: saturate(1.16);
 }
-body.speaking .orb3d .swirl {
-  animation-duration: 3s;
-}
+
 @media (prefers-reduced-motion: reduce) {
-  .orb3d .swirl,
-  .orb3d .grain,
-  .orb3d .flow {
-    animation-duration: 30s;
+  .orb3d,
+  .orb3d::before,
+  body[data-state='listening']:not(.recording) .orb3d,
+  body[data-state='thinking'] .orb3d {
+    animation: none !important;
+    transition: none !important;
   }
 }
 /* ---------- the message sheet ---------- */
@@ -1658,165 +1588,3 @@ body[data-nocam='yes'] .viewfinder {
   pointer-events: none;
 }
 
-
-/* ---------- brighter orange thinking orb ---------- */
-/* A richer molten-orange core, with a warm rim and a more dimensional glow. */
-.orb3d {
-  background:
-    radial-gradient(ellipse 30% 19% at 30% 21%, rgb(255 255 248 / 0.98) 0%, rgb(255 225 181 / 0.82) 38%, transparent 100%),
-    radial-gradient(ellipse 48% 33% at 64% 84%, rgb(255 67 0 / 0.9) 0%, transparent 100%),
-    radial-gradient(ellipse 36% 48% at 87% 43%, rgb(255 112 16 / 0.66), transparent 100%),
-    radial-gradient(ellipse 49% 42% at 35% 62%, rgb(255 151 35 / 0.72), transparent 100%),
-    radial-gradient(circle at 42% 36%, #fff7e9 0%, #ffd18a 17%, #ffad3c 31%, #ff811b 49%, #ed540a 68%, #a82a03 83%, #431000 100%);
-  box-shadow:
-    inset -18px -22px 35px rgb(79 19 0 / 0.58),
-    inset 10px 10px 22px rgb(255 248 225 / 0.78),
-    inset 0 0 30px 4px rgb(255 201 112 / 0.52),
-    0 0 0 1px rgb(255 219 163 / 0.68),
-    0 0 0 5px rgb(255 136 32 / 0.06),
-    0 0 24px 4px rgb(255 151 47 / 0.9),
-    0 0 calc(68px + var(--level) * 85px) calc(7px + var(--level) * 16px) rgb(255 111 13 / 0.66),
-    0 0 calc(125px + var(--level) * 120px) calc(22px + var(--level) * 34px) rgb(255 73 0 / 0.38),
-    0 0 230px 54px rgb(255 83 0 / 0.2);
-  filter: brightness(calc(1.08 + var(--level) * 0.22)) saturate(1.3);
-}
-
-.orb3d::before,
-.orb3d::after {
-  content: "";
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.orb3d::before {
-  inset: -14%;
-  z-index: 0;
-  background: conic-gradient(
-    from 24deg,
-    transparent 0deg 32deg,
-    rgb(255 242 205 / 0.05) 42deg,
-    rgb(255 225 166 / 0.62) 54deg,
-    rgb(255 101 10 / 0.58) 72deg,
-    transparent 91deg 136deg,
-    rgb(255 178 71 / 0.46) 160deg,
-    transparent 190deg 250deg,
-    rgb(255 240 214 / 0.36) 281deg,
-    transparent 310deg 360deg
-  );
-  filter: blur(6px);
-  mix-blend-mode: screen;
-  opacity: 0.82;
-  animation: orb-plasma-drift 7s linear infinite;
-}
-
-@keyframes orb-plasma-drift {
-  to {
-    transform: rotate(360deg) scale(1.04);
-  }
-}
-
-/* Soft glass reflection and edge shading finish the sphere without hiding its motion. */
-.orb3d::after {
-  inset: 0;
-  z-index: 3;
-  background:
-    radial-gradient(ellipse 39% 18% at 29% 18%, rgb(255 255 252 / 0.5) 0%, rgb(255 245 226 / 0.16) 44%, transparent 100%),
-    radial-gradient(ellipse 85% 78% at 50% 53%, transparent 48%, rgb(70 14 0 / 0.3) 100%);
-  box-shadow:
-    inset 0 1px 0 rgb(255 249 227 / 0.42),
-    inset 0 -12px 26px rgb(65 12 0 / 0.24);
-}
-
-.orb3d .swirl {
-  background:
-    repeating-conic-gradient(from 0deg at 47% 45%, rgb(255 224 155 / 0.58) 0deg 8deg, rgb(255 112 19 / 0.24) 13deg 22deg, rgb(191 43 0 / 0.34) 27deg 34deg, transparent 39deg 47deg),
-    conic-gradient(from 90deg, rgb(255 245 218 / 0.34), transparent 25%, rgb(187 43 0 / 0.42) 50%, transparent 75%, rgb(255 236 205 / 0.32));
-  filter: blur(4px);
-  mix-blend-mode: screen;
-  opacity: 0.78;
-}
-
-.orb3d .grain {
-  opacity: 0.48;
-}
-
-.orb3d .flow {
-  background:
-    radial-gradient(40% 30% at 30% 70%, rgb(255 178 65 / 0.92), transparent 70%),
-    radial-gradient(35% 25% at 72% 35%, rgb(255 248 226 / 0.64), transparent 70%),
-    radial-gradient(30% 30% at 55% 50%, rgb(255 76 0 / 0.66), transparent 70%);
-  filter: blur(5px);
-  mix-blend-mode: screen;
-  opacity: 0.9;
-}
-
-.orb3d .sheen {
-  opacity: 0.72;
-}
-
-.orb3d .glint {
-  opacity: 0.9;
-}
-
-/* Thinking feels energized: faster internal currents and a brighter, still-soft corona. */
-body[data-state='thinking'] .orb3d {
-  filter: brightness(calc(1.15 + var(--level) * 0.24)) saturate(1.38);
-}
-
-body[data-state='thinking'] .orb3d::before {
-  opacity: 1;
-  animation-duration: 1.9s;
-}
-
-body[data-state='thinking'] .orb3d .swirl {
-  animation-duration: 1.15s;
-}
-
-body[data-state='thinking'] .orb3d .flow {
-  animation-duration: 0.95s;
-}
-
-body[data-state='thinking'] .orb3d .sheen {
-  animation-duration: 1.35s;
-}
-
-body[data-state='thinking'] .orb3d .glint {
-  animation-duration: 2s;
-}
-
-/* The small status orb echoes the same hot-orange / golden-white palette. */
-body[data-state='thinking'] .orb {
-  background: conic-gradient(from var(--angle), #fffdf4, #ffd477, #ff8119, #e94808, #ffb13f, #fffdf4);
-  box-shadow: 0 0 10px rgb(255 143 32 / 0.9), 0 0 22px rgb(255 93 9 / 0.55);
-  animation: turn 1s linear infinite, mini-orb-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes mini-orb-pulse {
-  50% {
-    transform: scale(1.18);
-    opacity: 0.86;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .orb3d::before {
-    animation-duration: 30s;
-  }
-
-  body[data-state='thinking'] .orb3d .swirl,
-  body[data-state='thinking'] .orb3d .flow,
-  body[data-state='thinking'] .orb3d .sheen,
-  body[data-state='thinking'] .orb3d .glint {
-    animation-duration: 30s;
-  }
-
-  body[data-state='thinking'] .orb3d,
-  body[data-state='listening'] .orb3d {
-    animation-duration: 6s;
-  }
-
-  body[data-state='thinking'] .orb {
-    animation-duration: 30s, 30s;
-  }
-}
