@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350" role="img" aria-labelledby="title desc">
+  <title id="title">Eyes for Everyone — See more. Ask anything.</title>
+  <desc id="desc">A high-contrast promotional poster for Eyes for Everyone, a phone helper for people with low vision. Take a photo, ask a question out loud, and hear an answer. Includes Qibla mode.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10100f"/>
+      <stop offset="1" stop-color="#21150b"/>
+    </linearGradient>
+    <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffe08a"/>
+      <stop offset=".48" stop-color="#ff9f24"/>
+      <stop offset="1" stop-color="#f45a16"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#ff9e28" stop-opacity=".32"/>
+      <stop offset="1" stop-color="#ff9e28" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+  <rect width="1080" height="1350" fill="url(#bg)"/>
+  <circle cx="785" cy="360" r="330" fill="url(#glow)"/>
+  <circle cx="785" cy="360" r="180" fill="#ff8b1f" opacity=".13" filter="url(#shadow)"/>
+  <g fill="none" stroke="#ffb24c" stroke-opacity=".18">
+    <circle cx="785" cy="360" r="235" stroke-width="2"/>
+    <circle cx="785" cy="360" r="270" stroke-width="2" stroke-dasharray="4 16"/>
+  </g>
+  <g transform="translate(100 95)">
+    <rect width="82" height="82" rx="24" fill="url(#orange)"/>
+    <path d="M13 41 Q41 12 69 41 Q41 70 13 41Z" fill="#17100a"/>
+    <circle cx="41" cy="41" r="13" fill="#fff3d0"/>
+    <circle cx="41" cy="41" r="6" fill="#f36b14"/>
+  </g>
+  <text x="202" y="130" fill="#fff8e9" font-family="Arial, Helvetica, sans-serif" font-size="36" font-weight="700" letter-spacing="1">EYES FOR EVERYONE</text>
+  <text x="102" y="278" fill="#fff8e9" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" letter-spacing="-3">See more.</text>
+  <text x="102" y="374" fill="url(#orange)" font-family="Arial, Helvetica, sans-serif" font-size="88" font-weight="800" letter-spacing="-3">Ask anything.</text>
+  <text x="106" y="432" fill="#d8d0c4" font-family="Arial, Helvetica, sans-serif" font-size="29">A little more independence, right from your phone.</text>
+  <g transform="translate(580 485)">
+    <rect x="0" y="0" width="350" height="350" rx="76" fill="#21180f" stroke="#ffb24c" stroke-opacity=".5" stroke-width="3"/>
+    <circle cx="175" cy="175" r="125" fill="url(#glow)"/>
+    <circle cx="175" cy="175" r="92" fill="none" stroke="#ff9d2a" stroke-opacity=".65" stroke-width="3" stroke-dasharray="5 12"/>
+    <path d="M55 175 Q175 66 295 175 Q175 284 55 175Z" fill="url(#orange)"/>
+    <circle cx="175" cy="175" r="51" fill="#21130b"/>
+    <circle cx="175" cy="175" r="28" fill="#fff3d0"/>
+    <circle cx="175" cy="175" r="13" fill="#f16d15"/>
+    <path d="M175 62 L175 45 M288 175 L305 175 M175 288 L175 305 M62 175 L45 175" stroke="#ffe0a0" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <g transform="translate(102 520)" font-family="Arial, Helvetica, sans-serif">
+    <g>
+      <circle cx="19" cy="20" r="19" fill="#ff9e27"/>
+      <path d="M11 20 L17 26 L28 13" fill="none" stroke="#17100a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="54" y="17" fill="#fff8e9" font-size="31" font-weight="700">Take a photo</text>
+      <text x="54" y="55" fill="#d8d0c4" font-size="24">Point your camera at what you want to know.</text>
+    </g>
+    <g transform="translate(0 112)">
+      <circle cx="19" cy="20" r="19" fill="#ff9e27"/>
+      <path d="M11 20 L17 26 L28 13" fill="none" stroke="#17100a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="54" y="17" fill="#fff8e9" font-size="31" font-weight="700">Ask out loud</text>
+      <text x="54" y="55" fill="#d8d0c4" font-size="24">Ask a question or let the app describe it.</text>
+    </g>
+    <g transform="translate(0 224)">
+      <circle cx="19" cy="20" r="19" fill="#ff9e27"/>
+      <path d="M11 20 L17 26 L28 13" fill="none" stroke="#17100a" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+      <text x="54" y="17" fill="#fff8e9" font-size="31" font-weight="700">Hear the answer</text>
+      <text x="54" y="55" fill="#d8d0c4" font-size="24">Get a spoken response, hands-free.</text>
+    </g>
+  </g>
+  <rect x="100" y="900" width="880" height="2" fill="#ffb24c" opacity=".35"/>
+  <g transform="translate(102 948)" font-family="Arial, Helvetica, sans-serif">
+    <rect width="876" height="104" rx="26" fill="#2b1c0e" stroke="#ffb24c" stroke-opacity=".6" stroke-width="2"/>
+    <circle cx="53" cy="52" r="25" fill="url(#orange)"/>
+    <path d="M53 32 L53 72 M33 52 L73 52 M39 38 L67 66 M67 38 L39 66" stroke="#21130b" stroke-width="3" stroke-linecap="round"/>
+    <text x="98" y="44" fill="#fff8e9" font-size="28" font-weight="700">Also includes Qibla mode</text>
+    <text x="98" y="77" fill="#d8d0c4" font-size="22">A live compass with direction and distance to the Kaaba.</text>
+  </g>
+  <text x="102" y="1138" fill="#fff8e9" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Made with accessibility in mind.</text>
+  <text x="102" y="1178" fill="#cfc5b7" font-family="Arial, Helvetica, sans-serif" font-size="23">Voice support: English · العربية · മലയാളം</text>
+  <rect x="100" y="1220" width="880" height="76" rx="24" fill="url(#orange)"/>
+  <text x="540" y="1268" text-anchor="middle" fill="#1a1007" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="800">TRY EYES FOR EVERYONE</text>
+  <text x="540" y="1327" text-anchor="middle" fill="#f7dfbd" font-family="Arial, Helvetica, sans-serif" font-size="19">A phone helper for people with low vision</text>
+</svg>
