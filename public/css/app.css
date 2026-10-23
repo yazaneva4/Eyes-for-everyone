@@ -1813,3 +1813,74 @@ body[data-state='start'] .orb3d .pulse-orb-frame {
   border: 0 !important;
   background: transparent !important;
 }
+
+/* Layering repair: the iframe contains the orb itself, but must not sit above
+   the app's logo/brand or cover the orb's own decorative layers. */
+body[data-state='start'] .focus {
+  position: relative !important;
+  isolation: isolate;
+  grid-template-rows: auto minmax(180px, 1fr) !important;
+  row-gap: clamp(12px, 3vh, 24px) !important;
+}
+body[data-state='start'] .brand {
+  position: relative !important;
+  z-index: 20 !important;
+  width: min(100%, 460px) !important;
+  max-height: none !important;
+  overflow: visible !important;
+  justify-self: center !important;
+  align-self: start !important;
+  padding: 0 12px !important;
+  gap: clamp(8px, 1.8vh, 14px) !important;
+}
+body[data-state='start'] .brand .logo {
+  position: relative !important;
+  z-index: 21 !important;
+  display: grid !important;
+  place-items: center !important;
+  flex: 0 0 auto;
+  width: clamp(48px, 11vmin, 64px) !important;
+  height: clamp(48px, 11vmin, 64px) !important;
+  aspect-ratio: 1 / 1 !important;
+  margin: 0 auto !important;
+  overflow: visible !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  background: rgba(255,255,255,.09) !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  box-shadow: 0 8px 28px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.16) !important;
+}
+body[data-state='start'] .brand .logo .ic {
+  display: block !important;
+  width: 62% !important;
+  height: 62% !important;
+  max-width: none !important;
+  max-height: none !important;
+  color: var(--fg) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+body[data-state='start'] .brand-text {
+  position: relative !important;
+  z-index: 20 !important;
+  width: 100% !important;
+}
+body[data-state='start'] .orb3d {
+  position: relative !important;
+  z-index: 1 !important;
+  isolation: isolate !important;
+  overflow: visible !important;
+}
+body[data-state='start'] .orb3d .pulse-orb-frame {
+  z-index: 0 !important;
+  inset: -4% !important;
+  width: 108% !important;
+  height: 108% !important;
+  display: block !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: none !important;
+}
