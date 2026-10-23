@@ -426,6 +426,22 @@ body[data-state='answer'] .orb {
     opacity 0.35s ease,
     transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
+/* On the opening screen, show the brand above the orb instead of hiding the orb
+   until the user starts listening. */
+body[data-state='start'] .focus {
+  grid-template-rows: minmax(0, .72fr) minmax(0, 1fr);
+}
+body[data-state='start'] .brand {
+  grid-area: 1 / 1;
+  align-self: center;
+  z-index: 1;
+}
+body[data-state='start'] .orb3d {
+  grid-area: 2 / 1;
+  align-self: center;
+  opacity: 1;
+  transform: none;
+}
 body[data-state='start'] .brand,
 body[data-state='ready'][data-camera='on'][data-mode='describe'] .viewfinder,
 body[data-state='ready'][data-mode='qibla'] .compass,
