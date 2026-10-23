@@ -1,5 +1,7 @@
 # Eyes for Everyone
 
+**Promotional poster:** [View the poster](https://eyesforeveryone.vercel.app/poster.svg) · Source: [`public/poster.svg`](public/poster.svg)
+
 A phone web app for people with low vision. **The whole screen is one giant button.**
 Tap to take a photo, ask a question out loud, tap again, and hear the answer.
 
