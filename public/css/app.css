@@ -1678,3 +1678,7 @@ body[data-state='working'] .orb3d .orb-shell { animation:pulse-orb-working 3.2s 
 @keyframes pulse-orb-attentive { 0%,100%{transform:scale(1)} 50%{transform:scale(1.13)} }
 @keyframes pulse-orb-core { 0%,100%{transform:scale(.99)} 50%{transform:scale(1.045)} }
 @keyframes pulse-orb-working { from{transform:rotate(0deg) scale(.99)} to{transform:rotate(360deg) scale(.99)} }
+
+
+/* The app displays the original uploaded orb from its own HTML file. */
+.orb3d .pulse-orb-frame { position:absolute; inset:0; width:100%; height:100%; border:0; background:transparent; z-index:10; pointer-events:none; }
