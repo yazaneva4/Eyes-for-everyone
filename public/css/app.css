@@ -819,7 +819,7 @@ body[data-state='start'] .tagline {
 }
 
 
-/* User's Pulse Orb design: rotating amber aura, orbital energy rings, and sparks. */
+/* User's exact Pulse Orb HTML renderer is used in orb.js. */
 .orb3d .orb-aura {
   position:absolute; inset:-16%; z-index:0; border-radius:50%; pointer-events:none;
   background:conic-gradient(from 0deg,transparent 0 7%,rgb(255 85 0 / .45) 15%,transparent 27%,rgb(255 185 55 / .38) 41%,transparent 57%,rgb(255 64 0 / .34) 70%,transparent 84%,rgb(255 166 30 / .34) 94%,transparent);
@@ -1671,3 +1671,26 @@ body[data-nocam='yes'] .viewfinder {
   pointer-events: none;
 }
 
+
+
+/* Exact Pulse Orb shell/highlight treatment from siri_thinking_orb-3.html */
+.orb3d { background:transparent !important; box-shadow:0 0 55px rgb(255 96 0 / .15),0 0 110px rgb(255 83 0 / .08) !important; }
+.orb3d .orb-canvas { border-radius:50%; }
+.orb3d .orb-shell {
+  position:absolute; inset:0; width:100%; height:100%; border-radius:50%; overflow:visible;
+  isolation:isolate; transform:translateZ(0); z-index:3;
+  box-shadow:0 0 55px rgb(255 96 0 / .15),0 0 110px rgb(255 83 0 / .08);
+  animation:pulse-orb-breathe 4.6s ease-in-out infinite;
+}
+.orb3d .orb-shell::before {
+  content:""; position:absolute; z-index:2; inset:0; border-radius:inherit; pointer-events:none;
+  background:radial-gradient(ellipse at 30% 17%,rgb(255 255 255 / .77) 0%,rgb(255 236 199 / .34) 5%,transparent 18%),radial-gradient(ellipse at 72% 77%,transparent 38%,rgb(39 8 0 / .24) 74%,rgb(15 4 0 / .8) 100%);
+  box-shadow:inset -17px -20px 36px rgb(24 5 0 / .5),inset 8px 8px 18px rgb(255 255 255 / .13),inset 0 0 18px rgb(255 181 87 / .17);
+}
+@keyframes pulse-orb-breathe { 0%,100%{transform:scale(.982)} 50%{transform:scale(1.018)} }
+body[data-state='listening'] .orb3d, body[data-state='answer'].speaking .orb3d { animation:pulse-orb-attentive 1.8s ease-in-out infinite; }
+body[data-state='listening'] .orb3d .orb-shell, body[data-state='answer'].speaking .orb3d .orb-shell { animation:pulse-orb-core 1.8s ease-in-out infinite; }
+body[data-state='working'] .orb3d .orb-shell { animation:pulse-orb-working 3.2s linear infinite; }
+@keyframes pulse-orb-attentive { 0%,100%{transform:scale(1)} 50%{transform:scale(1.13)} }
+@keyframes pulse-orb-core { 0%,100%{transform:scale(.99)} 50%{transform:scale(1.045)} }
+@keyframes pulse-orb-working { from{transform:rotate(0deg) scale(.99)} to{transform:rotate(360deg) scale(.99)} }
