@@ -714,9 +714,10 @@ body[data-state='start'] .tagline {
 /* Fluid orange AI orb: soft color fields instead of glossy bands or grain. */
 .orb3d {
   position: relative;
-  height: min(44vmin, 200px, 76%);
-  width: auto;
+  width: min(44vmin, 200px, 76vw);
+  height: auto;
   aspect-ratio: 1;
+  flex: 0 0 auto;
   border-radius: 50%;
   overflow: visible;
   isolation: isolate;
