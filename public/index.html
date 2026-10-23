@@ -15,6 +15,7 @@
     <link rel="preload" href="/fonts/atkinson-hyperlegible-next-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="stylesheet" href="/css/fonts.css" />
     <link rel="stylesheet" href="/css/app.css" />
+    <script defer src="/js/orb.js"></script>
     <script type="module" src="/js/app.js"></script>
   <script defer src="/app-updates.js"></script>
 </head>
@@ -91,7 +92,7 @@
           <span class="map-note" id="map-note">North up</span>
         </div>
         <!-- A glowing orange orb: it spins, and grows and shrinks with how loud you or the AI speak -->
-        <div class="orb3d"><span class="swirl"></span><span class="grain"></span><span class="flow"></span><span class="sheen"></span><span class="glint"></span></div>
+        <div class="orb3d" aria-hidden="true"><canvas class="orb-canvas" aria-hidden="true"></canvas></div>
       </div>
 
       <div class="sheet glass">
