@@ -215,7 +215,14 @@
     if (previousFrame) {
       const delta = Math.min((now - previousFrame) / 1000, 0.045);
       const state = currentState();
-      const speed = ['thinking', 'working', 'solving', 'searching', 'composing'].includes(state) ? 1.12 : 0.46;
+      // Match the animation rates from the uploaded Pulse Orb's original mode table.
+      const speed =
+        state === 'thinking' ? 1.0 :
+        ['working', 'solving'].includes(state) ? 1.48 :
+        ['searching', 'composing'].includes(state) ? 1.22 :
+        state === 'listening' ? 0.72 :
+        state === 'answer' && body.classList.contains('speaking') ? 1.12 :
+        0.82;
       time += delta * speed;
     }
     previousFrame = now;
