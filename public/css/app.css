@@ -430,7 +430,12 @@ body[data-state='start'] .brand,
 body[data-state='ready'][data-camera='on'][data-mode='describe'] .viewfinder,
 body[data-state='ready'][data-mode='qibla'] .compass,
 body[data-state='listening'] .orb3d,
-body[data-state='thinking'] .orb3d {
+body[data-state='thinking'] .orb3d,
+body[data-state='working'] .orb3d,
+body[data-state='solving'] .orb3d,
+body[data-state='searching'] .orb3d,
+body[data-state='composing'] .orb3d,
+body[data-state='answer'].speaking .orb3d {
   opacity: 1;
   transform: none;
 }
