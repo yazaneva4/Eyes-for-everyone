@@ -1657,3 +1657,166 @@ body[data-nocam='yes'] .viewfinder {
   white-space: pre-wrap;
   pointer-events: none;
 }
+
+
+/* ---------- brighter orange thinking orb ---------- */
+/* A richer molten-orange core, with a warm rim and a more dimensional glow. */
+.orb3d {
+  background:
+    radial-gradient(ellipse 30% 19% at 30% 21%, rgb(255 255 248 / 0.98) 0%, rgb(255 225 181 / 0.82) 38%, transparent 100%),
+    radial-gradient(ellipse 48% 33% at 64% 84%, rgb(255 67 0 / 0.9) 0%, transparent 100%),
+    radial-gradient(ellipse 36% 48% at 87% 43%, rgb(255 112 16 / 0.66), transparent 100%),
+    radial-gradient(ellipse 49% 42% at 35% 62%, rgb(255 151 35 / 0.72), transparent 100%),
+    radial-gradient(circle at 42% 36%, #fff7e9 0%, #ffd18a 17%, #ffad3c 31%, #ff811b 49%, #ed540a 68%, #a82a03 83%, #431000 100%);
+  box-shadow:
+    inset -18px -22px 35px rgb(79 19 0 / 0.58),
+    inset 10px 10px 22px rgb(255 248 225 / 0.78),
+    inset 0 0 30px 4px rgb(255 201 112 / 0.52),
+    0 0 0 1px rgb(255 219 163 / 0.68),
+    0 0 0 5px rgb(255 136 32 / 0.06),
+    0 0 24px 4px rgb(255 151 47 / 0.9),
+    0 0 calc(68px + var(--level) * 85px) calc(7px + var(--level) * 16px) rgb(255 111 13 / 0.66),
+    0 0 calc(125px + var(--level) * 120px) calc(22px + var(--level) * 34px) rgb(255 73 0 / 0.38),
+    0 0 230px 54px rgb(255 83 0 / 0.2);
+  filter: brightness(calc(1.08 + var(--level) * 0.22)) saturate(1.3);
+}
+
+.orb3d::before,
+.orb3d::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.orb3d::before {
+  inset: -14%;
+  z-index: 0;
+  background: conic-gradient(
+    from 24deg,
+    transparent 0deg 32deg,
+    rgb(255 242 205 / 0.05) 42deg,
+    rgb(255 225 166 / 0.62) 54deg,
+    rgb(255 101 10 / 0.58) 72deg,
+    transparent 91deg 136deg,
+    rgb(255 178 71 / 0.46) 160deg,
+    transparent 190deg 250deg,
+    rgb(255 240 214 / 0.36) 281deg,
+    transparent 310deg 360deg
+  );
+  filter: blur(6px);
+  mix-blend-mode: screen;
+  opacity: 0.82;
+  animation: orb-plasma-drift 7s linear infinite;
+}
+
+@keyframes orb-plasma-drift {
+  to {
+    transform: rotate(360deg) scale(1.04);
+  }
+}
+
+/* Soft glass reflection and edge shading finish the sphere without hiding its motion. */
+.orb3d::after {
+  inset: 0;
+  z-index: 3;
+  background:
+    radial-gradient(ellipse 39% 18% at 29% 18%, rgb(255 255 252 / 0.5) 0%, rgb(255 245 226 / 0.16) 44%, transparent 100%),
+    radial-gradient(ellipse 85% 78% at 50% 53%, transparent 48%, rgb(70 14 0 / 0.3) 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 249 227 / 0.42),
+    inset 0 -12px 26px rgb(65 12 0 / 0.24);
+}
+
+.orb3d .swirl {
+  background:
+    repeating-conic-gradient(from 0deg at 47% 45%, rgb(255 224 155 / 0.58) 0deg 8deg, rgb(255 112 19 / 0.24) 13deg 22deg, rgb(191 43 0 / 0.34) 27deg 34deg, transparent 39deg 47deg),
+    conic-gradient(from 90deg, rgb(255 245 218 / 0.34), transparent 25%, rgb(187 43 0 / 0.42) 50%, transparent 75%, rgb(255 236 205 / 0.32));
+  filter: blur(4px);
+  mix-blend-mode: screen;
+  opacity: 0.78;
+}
+
+.orb3d .grain {
+  opacity: 0.48;
+}
+
+.orb3d .flow {
+  background:
+    radial-gradient(40% 30% at 30% 70%, rgb(255 178 65 / 0.92), transparent 70%),
+    radial-gradient(35% 25% at 72% 35%, rgb(255 248 226 / 0.64), transparent 70%),
+    radial-gradient(30% 30% at 55% 50%, rgb(255 76 0 / 0.66), transparent 70%);
+  filter: blur(5px);
+  mix-blend-mode: screen;
+  opacity: 0.9;
+}
+
+.orb3d .sheen {
+  opacity: 0.72;
+}
+
+.orb3d .glint {
+  opacity: 0.9;
+}
+
+/* Thinking feels energized: faster internal currents and a brighter, still-soft corona. */
+body[data-state='thinking'] .orb3d {
+  filter: brightness(calc(1.15 + var(--level) * 0.24)) saturate(1.38);
+}
+
+body[data-state='thinking'] .orb3d::before {
+  opacity: 1;
+  animation-duration: 1.9s;
+}
+
+body[data-state='thinking'] .orb3d .swirl {
+  animation-duration: 1.15s;
+}
+
+body[data-state='thinking'] .orb3d .flow {
+  animation-duration: 0.95s;
+}
+
+body[data-state='thinking'] .orb3d .sheen {
+  animation-duration: 1.35s;
+}
+
+body[data-state='thinking'] .orb3d .glint {
+  animation-duration: 2s;
+}
+
+/* The small status orb echoes the same hot-orange / golden-white palette. */
+body[data-state='thinking'] .orb {
+  background: conic-gradient(from var(--angle), #fffdf4, #ffd477, #ff8119, #e94808, #ffb13f, #fffdf4);
+  box-shadow: 0 0 10px rgb(255 143 32 / 0.9), 0 0 22px rgb(255 93 9 / 0.55);
+  animation: turn 1s linear infinite, mini-orb-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes mini-orb-pulse {
+  50% {
+    transform: scale(1.18);
+    opacity: 0.86;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orb3d::before {
+    animation-duration: 30s;
+  }
+
+  body[data-state='thinking'] .orb3d .swirl,
+  body[data-state='thinking'] .orb3d .flow,
+  body[data-state='thinking'] .orb3d .sheen,
+  body[data-state='thinking'] .orb3d .glint {
+    animation-duration: 30s;
+  }
+
+  body[data-state='thinking'] .orb3d,
+  body[data-state='listening'] .orb3d {
+    animation-duration: 6s;
+  }
+
+  body[data-state='thinking'] .orb {
+    animation-duration: 30s, 30s;
+  }
+}
