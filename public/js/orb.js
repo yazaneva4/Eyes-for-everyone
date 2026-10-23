@@ -86,87 +86,128 @@
 
     const cx = width / 2;
     const cy = height / 2;
-    const radius = Math.min(width, height) * 0.425;
-    const pulse = 1 + energy * 0.018;
-    const shape = blobPath(cx, cy, radius * pulse, t, state, energy);
+    const radius = Math.min(width, height) * 0.405;
+    const speed = ['thinking', 'working', 'solving', 'searching', 'composing'].includes(state) ? 1.45 : 0.82;
+    const phase = t * speed;
+    const pulse = 1 + Math.sin(phase * 1.3) * 0.018 + energy * 0.025;
 
-    // Ambient corona, not a hard ring or glossy candy shell.
+    // Broad atmospheric glow makes this read as light, not a painted orange ball.
     ctx.save();
-    ctx.fillStyle = 'rgba(255, 112, 24, 0.28)';
-    ctx.shadowColor = 'rgba(255, 106, 15, 0.5)';
-    ctx.shadowBlur = radius * 0.28;
-    ctx.fill(shape);
+    const aura = ctx.createRadialGradient(cx, cy, radius * 0.15, cx, cy, radius * 1.62);
+    aura.addColorStop(0, 'rgba(255, 132, 32, 0.28)');
+    aura.addColorStop(0.48, 'rgba(255, 76, 12, 0.13)');
+    aura.addColorStop(1, 'rgba(255, 65, 0, 0)');
+    ctx.fillStyle = aura;
+    ctx.fillRect(0, 0, width, height);
     ctx.restore();
 
+    // The core is deliberately translucent and bright, with a moving molten center.
     ctx.save();
-    ctx.clip(shape);
+    ctx.translate(cx, cy);
+    ctx.scale(pulse, pulse);
+    const sphere = ctx.createRadialGradient(-radius * 0.27, -radius * 0.31, radius * 0.025, 0, 0, radius * 1.13);
+    sphere.addColorStop(0, 'rgba(255, 246, 211, 0.99)');
+    sphere.addColorStop(0.16, 'rgba(255, 205, 121, 0.98)');
+    sphere.addColorStop(0.38, 'rgba(255, 133, 35, 0.96)');
+    sphere.addColorStop(0.7, 'rgba(232, 65, 9, 0.94)');
+    sphere.addColorStop(1, 'rgba(96, 18, 4, 0.82)');
+    ctx.fillStyle = sphere;
+    ctx.beginPath();
+    ctx.arc(0, 0, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
 
-    const base = ctx.createRadialGradient(
-      cx - radius * 0.28, cy - radius * 0.34, radius * 0.03,
-      cx, cy, radius * 1.32
-    );
-    base.addColorStop(0, '#ffd39a');
-    base.addColorStop(0.24, '#ffb254');
-    base.addColorStop(0.48, '#ff8b2b');
-    base.addColorStop(0.73, '#e95713');
-    base.addColorStop(1, '#8f2707');
-    ctx.fillStyle = base;
-    ctx.fillRect(0, 0, width, height);
+    // Cut the moving light ribbons to the sphere, so they flow inside its silhouette.
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius * 0.985, 0, Math.PI * 2);
+    ctx.clip();
 
-    // Broad, soft color fields drift through each other like liquid light.
-    // They deliberately avoid sharp stripes, glitter, grain, or a glassy highlight.
-    paintCloud(
-      cx + Math.sin(t * 0.31) * radius * 0.19,
-      cy + Math.cos(t * 0.24) * radius * 0.13,
-      radius * 0.79, radius * 0.66, Math.sin(t * 0.19) * 0.7,
-      [[0, 'rgba(255, 198, 106, 0.82)'], [0.42, 'rgba(255, 145, 40, 0.45)'], [1, 'rgba(255, 109, 14, 0)']],
-      0.9, 'screen'
-    );
-    paintCloud(
-      cx + Math.cos(t * 0.23 + 1.7) * radius * 0.34,
-      cy + Math.sin(t * 0.29 + 0.8) * radius * 0.25,
-      radius * 0.55, radius * 0.42, t * 0.12,
-      [[0, 'rgba(255, 224, 174, 0.78)'], [0.46, 'rgba(255, 170, 80, 0.35)'], [1, 'rgba(255, 141, 36, 0)']],
-      0.8, 'screen'
-    );
-    paintCloud(
-      cx + Math.sin(t * 0.21 + 2.3) * radius * 0.32,
-      cy + Math.cos(t * 0.26 + 1.1) * radius * 0.3,
-      radius * 0.56, radius * 0.72, -t * 0.1,
-      [[0, 'rgba(255, 83, 11, 0.72)'], [0.48, 'rgba(245, 77, 7, 0.33)'], [1, 'rgba(213, 49, 0, 0)']],
-      0.74, 'screen'
-    );
-    paintCloud(
-      cx + Math.cos(t * 0.2 + 3.2) * radius * 0.18,
-      cy + Math.sin(t * 0.18 + 2.7) * radius * 0.31,
-      radius * 0.39, radius * 0.37, t * 0.08,
-      [[0, 'rgba(255, 178, 69, 0.78)'], [0.52, 'rgba(255, 111, 22, 0.25)'], [1, 'rgba(255, 95, 10, 0)']],
-      0.64 + energy * 0.17, 'screen'
-    );
-    paintCloud(
-      cx + Math.cos(t * 0.17 + 1.2) * radius * 0.22,
-      cy + radius * 0.24 + Math.sin(t * 0.16) * radius * 0.14,
-      radius * 0.54, radius * 0.46, -t * 0.06,
-      [[0, 'rgba(111, 24, 2, 0.34)'], [0.52, 'rgba(132, 32, 3, 0.15)'], [1, 'rgba(132, 32, 3, 0)']],
-      0.48, 'multiply'
-    );
+    // Large, unmistakably moving molten ribbons.
+    for (let i = 0; i < 7; i += 1) {
+      const p = phase * (0.42 + i * 0.035) + i * 1.19;
+      const y = cy + Math.sin(p * 0.76) * radius * 0.53;
+      const amp = radius * (0.18 + (i % 3) * 0.055);
+      const grad = ctx.createLinearGradient(cx - radius, y - amp, cx + radius, y + amp);
+      grad.addColorStop(0, 'rgba(255, 84, 8, 0)');
+      grad.addColorStop(0.22, i % 2 ? 'rgba(255, 239, 173, 0.12)' : 'rgba(255, 191, 90, 0.18)');
+      grad.addColorStop(0.48, i % 2 ? 'rgba(255, 250, 219, 0.88)' : 'rgba(255, 156, 45, 0.92)');
+      grad.addColorStop(0.72, i % 2 ? 'rgba(255, 183, 74, 0.3)' : 'rgba(255, 225, 154, 0.58)');
+      grad.addColorStop(1, 'rgba(255, 76, 5, 0)');
+      ctx.beginPath();
+      ctx.moveTo(cx - radius * 1.3, y - amp * 0.28);
+      ctx.bezierCurveTo(
+        cx - radius * 0.48, y - amp * (1.25 + Math.sin(p) * 0.24),
+        cx + radius * 0.28, y + amp * (1.35 + Math.cos(p * 0.8) * 0.24),
+        cx + radius * 1.3, y + amp * 0.12
+      );
+      ctx.lineWidth = radius * (0.09 + (i % 2) * 0.035);
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = grad;
+      ctx.shadowColor = i % 2 ? 'rgba(255, 230, 163, 0.75)' : 'rgba(255, 92, 12, 0.8)';
+      ctx.shadowBlur = radius * 0.12;
+      ctx.stroke();
+    }
 
-    // Gentle edge depth keeps the orb dimensional without a shiny candy coating.
-    const shade = ctx.createRadialGradient(
-      cx - radius * 0.08, cy - radius * 0.08, radius * 0.34,
-      cx, cy, radius * 1.14
-    );
-    shade.addColorStop(0, 'rgba(89, 24, 4, 0)');
-    shade.addColorStop(0.72, 'rgba(89, 24, 4, 0.035)');
-    shade.addColorStop(1, 'rgba(64, 15, 2, 0.38)');
-    ctx.globalCompositeOperation = 'multiply';
-    ctx.fillStyle = shade;
-    ctx.fillRect(0, 0, width, height);
+    // A pair of luminous currents travel in opposite directions across the core.
+    for (let i = 0; i < 4; i += 1) {
+      const p = phase * (i % 2 ? -0.66 : 0.58) + i * 1.57;
+      ctx.beginPath();
+      ctx.ellipse(
+        cx + Math.sin(p) * radius * 0.12,
+        cy + Math.cos(p * 0.7) * radius * 0.12,
+        radius * (0.48 + i * 0.095),
+        radius * (0.16 + (i % 2) * 0.07),
+        p * 0.72,
+        0,
+        Math.PI * 2
+      );
+      ctx.strokeStyle = i % 2 ? 'rgba(255, 235, 181, 0.52)' : 'rgba(255, 75, 12, 0.7)';
+      ctx.lineWidth = radius * (i % 2 ? 0.025 : 0.035);
+      ctx.shadowColor = i % 2 ? 'rgba(255, 238, 190, 0.9)' : 'rgba(255, 75, 8, 0.9)';
+      ctx.shadowBlur = radius * 0.09;
+      ctx.stroke();
+    }
 
-    ctx.globalCompositeOperation = 'source-over';
-    ctx.strokeStyle = 'rgba(255, 218, 168, 0.18)';
-    ctx.lineWidth = Math.max(0.7, radius * 0.008);
-    ctx.stroke(shape);
+    // A bright moving hotspot gives the orb a living, reactive focal point.
+    const hx = cx + Math.cos(phase * 0.63) * radius * 0.31;
+    const hy = cy + Math.sin(phase * 0.82) * radius * 0.28;
+    const hotspot = ctx.createRadialGradient(hx, hy, 0, hx, hy, radius * 0.52);
+    hotspot.addColorStop(0, 'rgba(255, 250, 221, 0.78)');
+    hotspot.addColorStop(0.25, 'rgba(255, 205, 108, 0.34)');
+    hotspot.addColorStop(1, 'rgba(255, 143, 31, 0)');
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = hotspot;
+    ctx.fillRect(cx - radius, cy - radius, radius * 2, radius * 2);
+    ctx.restore();
+
+    // Fine outer contour and orbiting sparks: these move independently from the core.
+    ctx.save();
+    ctx.translate(cx, cy);
+    for (let i = 0; i < 3; i += 1) {
+      ctx.save();
+      ctx.rotate(phase * (i % 2 ? -0.18 : 0.14) + i * 1.05);
+      ctx.beginPath();
+      ctx.ellipse(0, 0, radius * (1.02 + i * 0.035), radius * (0.78 + i * 0.09), i * 0.28, -0.9, 1.1);
+      ctx.strokeStyle = i === 1 ? 'rgba(255, 220, 161, 0.55)' : 'rgba(255, 113, 26, 0.34)';
+      ctx.lineWidth = Math.max(0.8, radius * 0.018);
+      ctx.shadowColor = 'rgba(255, 120, 25, 0.7)';
+      ctx.shadowBlur = radius * 0.08;
+      ctx.stroke();
+      ctx.restore();
+    }
+    for (let i = 0; i < 8; i += 1) {
+      const a = phase * (i % 2 ? -0.72 : 0.57) + i * Math.PI / 4;
+      const rr = radius * (1.02 + 0.045 * Math.sin(phase + i));
+      const x = Math.cos(a) * rr;
+      const y = Math.sin(a) * rr * 0.86;
+      ctx.beginPath();
+      ctx.arc(x, y, Math.max(1, radius * (0.012 + (i % 3) * 0.004)), 0, Math.PI * 2);
+      ctx.fillStyle = i % 2 ? 'rgba(255, 238, 196, 0.92)' : 'rgba(255, 121, 30, 0.9)';
+      ctx.shadowColor = ctx.fillStyle;
+      ctx.shadowBlur = radius * 0.11;
+      ctx.fill();
+    }
     ctx.restore();
   }
 
