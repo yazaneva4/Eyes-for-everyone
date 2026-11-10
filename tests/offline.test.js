@@ -4,6 +4,9 @@ import vm from 'node:vm';
 import { readFileSync, existsSync } from 'node:fs';
 
 const source = readFileSync(new URL('../public/sw.js', import.meta.url), 'utf8');
+// The service worker's current cache version, read from the worker itself so a
+// version bump never makes this offline test fail on stale literals.
+const currentCache = (source.match(/const CACHE = '([^']+)'/) || [])[1];
 function worker() {
   const events = {};
   const stored = new Map([['/', new Response('<html>app</html>')]]);
@@ -18,7 +21,7 @@ function worker() {
     self: { addEventListener: (name, handler) => { events[name] = handler; }, skipWaiting() {}, clients: { claim() {} } },
     location: { origin: 'https://eyes.example' }, URL, Response,
     fetch: async () => { throw new Error('offline'); },
-    caches: { open: async () => cache, keys: async () => ['eyes-v58', 'eyes-v60', 'another-app'], delete: async key => deleted.push(key) },
+    caches: { open: async () => cache, keys: async () => ['eyes-v58', currentCache, 'another-app'], delete: async key => deleted.push(key) },
   });
   return { events, deleted, get shell() { return shell; } };
 }
