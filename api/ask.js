@@ -2,7 +2,7 @@ import { askAI, askAIStream, langOf } from './_lib/ai.js';
 import { guard, fail, isB64 } from './_lib/http.js';
 
 export default async function handler(req, res) {
-  if (!guard(req, res)) return;
+  if (!guard(req, res, 120)) return;
   const { image, mime = 'image/jpeg', question, lang, history, provider, stream } = req.body;
   if (!isB64(image, 4_000_000) || !/^image\/(jpeg|png|webp)$/.test(mime)) {
     return res.status(400).json({ error: 'Bad image' });

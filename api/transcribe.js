@@ -2,7 +2,7 @@ import { transcribe, langOf } from './_lib/ai.js';
 import { guard, fail, isB64 } from './_lib/http.js';
 
 export default async function handler(req, res) {
-  if (!guard(req, res)) return;
+  if (!guard(req, res, 240)) return;
   const { audio, mime, lang } = req.body;
   if (!isB64(audio, 4_000_000) || !/^audio\//.test(String(mime))) {
     return res.status(400).json({ error: 'Bad audio' });

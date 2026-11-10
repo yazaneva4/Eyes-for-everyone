@@ -2,7 +2,7 @@ import { speech, langOf } from './_lib/ai.js';
 import { guard, fail } from './_lib/http.js';
 
 export default async function handler(req, res) {
-  if (!guard(req, res)) return;
+  if (!guard(req, res, 300)) return;
   const text = String(req.body.text || '').slice(0, 1200).trim();
   if (!text) return res.status(400).json({ error: 'No text' });
   try {

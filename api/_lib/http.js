@@ -1,6 +1,26 @@
 // Small request checks shared by every API route.
 
-export function guard(req, res) {
+// Best-effort per-instance throttle. These endpoints spend real money on the
+// AI and voice providers and the origin check below can be replayed by any
+// script, so a client that ignores the app gets a 429 instead of a free run of
+// the owner's API credits. Instances are recycled, so this is a speed bump,
+// not an account-level quota.
+const WINDOW_MS = 10 * 60 * 1000;
+const hits = new Map();
+function clientIp(req) {
+  return String(req.headers['x-forwarded-for'] || '').split(',')[0].trim() || 'unknown';
+}
+function tooMany(req, max) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const recent = (hits.get(ip) || []).filter((t) => now - t < WINDOW_MS);
+  recent.push(now);
+  hits.set(ip, recent);
+  if (hits.size > 10000) hits.clear();
+  return recent.length > max;
+}
+
+export function guard(req, res, max = 60) {
   res.setHeader('Cache-Control', 'no-store');
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Use POST' });
@@ -18,6 +38,11 @@ export function guard(req, res) {
       res.status(403).json({ error: 'Forbidden' });
       return false;
     }
+  }
+  if (tooMany(req, max)) {
+    res.setHeader('Retry-After', '60');
+    res.status(429).json({ error: 'Too many requests, please wait a moment' });
+    return false;
   }
   if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
     res.status(400).json({ error: 'Send JSON' });

@@ -3,7 +3,7 @@ import { guard, fail } from './_lib/http.js';
 
 // Translates the app's own words into a language the user typed in. Nothing is stored.
 export default async function handler(req, res) {
-  if (!guard(req, res)) return;
+  if (!guard(req, res, 120)) return;
   const language = String(req.body.language || '').trim();
   const strings = req.body.strings;
   if (!customNameOk(language)) return res.status(400).json({ error: 'Bad language name' });
